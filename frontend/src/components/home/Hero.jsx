@@ -1,4 +1,4 @@
-import { Search, UserPlus } from "lucide-react";
+import { Search, Sparkles, UserPlus } from "lucide-react";
 import HeroScene from "./HeroScene";
 
 export default function Hero({ servicesCount, vendorsCount, savedCount, onFindVendors, onBecomeVendor }) {
@@ -8,6 +8,12 @@ export default function Hero({ servicesCount, vendorsCount, savedCount, onFindVe
       <div className="market-hero-content page">
         <div className="market-hero-inner">
           <div className="hero-copy">
+            <div className="hero-chip-row">
+              <span className="hero-live-chip">
+                <Sparkles size={14} />
+                Intelligent service matching
+              </span>
+            </div>
             <p className="hero-kicker">Service Marketplace</p>
             <h1>Find Trusted Professionals for Your Home & Office Work</h1>
             <p>
@@ -41,11 +47,22 @@ export default function Hero({ servicesCount, vendorsCount, savedCount, onFindVe
           </div>
 
           <div className="hero-visual">
+            <div className="hero-visual-noise" />
+            <div className="hero-visual-grid" />
             <HeroScene />
-            <div className="hero-visual-card">
-              <span className="hero-visual-label">Live platform energy</span>
-              <strong>3D motion layer</strong>
-              <p>Interactive Three.js background reacting to cursor movement.</p>
+            <div className="hero-floating-pill hero-floating-pill-top">Verified home service network</div>
+            <div className="hero-floating-pill hero-floating-pill-right">Escrow-secured bookings</div>
+            <div className="hero-signal hero-signal-one" />
+            <div className="hero-signal hero-signal-two" />
+            <div className="hero-visual-card hero-visual-card-main">
+              <span className="hero-visual-label">ServiceHub highlights</span>
+              <strong>Book trusted vendors faster</strong>
+              <p>Verified profiles, transparent quotes, and secure project coordination in one place.</p>
+            </div>
+            <div className="hero-visual-card hero-visual-card-metric">
+              <span className="hero-mini-label">Why clients choose us</span>
+              <strong>Safer hiring journey</strong>
+              <p>Compare services, save favorites, and book with confidence.</p>
             </div>
           </div>
         </div>
