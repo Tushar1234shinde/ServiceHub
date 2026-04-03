@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
 
 const ROLE_DETAILS = {
@@ -107,91 +108,119 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="page narrow auth-page">
-      <form className="card form-card auth-card" onSubmit={handleSubmit}>
-        <span className="eyebrow">Sign Up</span>
-        <h1>Create your account</h1>
-        <p className="subtle">Choose whether you are joining as a client or a vendor.</p>
-
-        <div className="role-grid" role="radiogroup" aria-label="Account type">
-          {Object.entries(ROLE_DETAILS).map(([role, details]) => (
-            <button
-              key={role}
-              type="button"
-              className={`role-card ${form.role === role ? "active" : ""}`}
-              onClick={() => handleRoleChange(role)}
-            >
-              <strong>{details.title}</strong>
-              <span>{details.description}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="auth-note">
-          <strong>{roleInfo.title}</strong>
-          <span>{roleInfo.note}</span>
-        </div>
-
-        <input
-          placeholder="Full name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Email"
-          type="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Password"
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          minLength={8}
-          required
-        />
-
-        <label className="upload-field">
-          <span className="upload-label">{roleInfo.uploadLabel}</span>
-          <span className="upload-help">{roleInfo.uploadHelp}</span>
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-        </label>
-
-        {previewImage && (
-          <div className="upload-preview-card">
-            <img src={previewImage} alt={form.role === "VENDOR" ? "Business logo preview" : "Profile preview"} className="upload-preview-image" />
-            <button
-              type="button"
-              className="ghost-button upload-remove-button"
-              onClick={() => setForm((current) => ({ ...current, profileImage: "", logoImage: "" }))}
-            >
-              Remove image
-            </button>
+    <main className="page auth-page auth-page-rich">
+      <section className="auth-layout auth-layout-signup">
+        <div className="auth-showcase">
+          <div className="auth-showcase-copy">
+            <span className="eyebrow auth-kicker">New Service Identity</span>
+            <h1>Launch your place in the home service ecosystem.</h1>
+            <p>
+              Create a client or vendor account, connect your profile, and join the request-to-delivery flow from day one.
+            </p>
           </div>
-        )}
-
-        {form.role === "VENDOR" && (
-          <textarea
-            placeholder="Tell clients about your services, experience, or special skills"
-            value={form.bio}
-            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-          />
-        )}
-
-        {error && <p className="error">{error}</p>}
-        <button className="primary-button" type="submit" disabled={loading || uploading}>
-          {uploading ? "Preparing image..." : loading ? "Creating account..." : `Create ${form.role === "CLIENT" ? "client" : "vendor"} account`}
-        </button>
-
-        <div className="auth-divider" aria-hidden="true" />
-        <div className="auth-switch">
-          <span>Already have an account?</span>
-          <Link className="ghost-button auth-link-button" to="/login">Sign in</Link>
+          <div className="auth-visual-shell auth-visual-shell-signup">
+            <div className="auth-visual-noise" />
+            <div className="auth-visual-grid" />
+            <AuthScene mode="signup" />
+            <div className="auth-floating-chip auth-floating-chip-top">Vendor ready</div>
+            <div className="auth-floating-chip auth-floating-chip-bottom">Client bookings online</div>
+            <div className="auth-visual-panel auth-visual-panel-main">
+              <span>Launch path</span>
+              <strong>Build trust fast with profiles, logos, and a role-based onboarding flow.</strong>
+            </div>
+            <div className="auth-visual-panel auth-visual-panel-side">
+              <span>Activation</span>
+              <strong>Join the marketplace</strong>
+              <p>Clients book faster, vendors publish faster, and the platform feels alive from the first click.</p>
+            </div>
+          </div>
         </div>
-      </form>
+
+        <form className="card form-card auth-card auth-form-card" onSubmit={handleSubmit}>
+          <span className="eyebrow">Sign Up</span>
+          <h2>Create your account</h2>
+          <p className="subtle">Choose whether you are joining as a client or a vendor.</p>
+
+          <div className="role-grid" role="radiogroup" aria-label="Account type">
+            {Object.entries(ROLE_DETAILS).map(([role, details]) => (
+              <button
+                key={role}
+                type="button"
+                className={`role-card ${form.role === role ? "active" : ""}`}
+                onClick={() => handleRoleChange(role)}
+              >
+                <strong>{details.title}</strong>
+                <span>{details.description}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="auth-note">
+            <strong>{roleInfo.title}</strong>
+            <span>{roleInfo.note}</span>
+          </div>
+
+          <input
+            placeholder="Full name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <input
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <input
+            placeholder="Password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            minLength={8}
+            required
+          />
+
+          <label className="upload-field">
+            <span className="upload-label">{roleInfo.uploadLabel}</span>
+            <span className="upload-help">{roleInfo.uploadHelp}</span>
+            <input type="file" accept="image/*" onChange={handleImageChange} />
+          </label>
+
+          {previewImage && (
+            <div className="upload-preview-card">
+              <img src={previewImage} alt={form.role === "VENDOR" ? "Business logo preview" : "Profile preview"} className="upload-preview-image" />
+              <button
+                type="button"
+                className="ghost-button upload-remove-button"
+                onClick={() => setForm((current) => ({ ...current, profileImage: "", logoImage: "" }))}
+              >
+                Remove image
+              </button>
+            </div>
+          )}
+
+          {form.role === "VENDOR" && (
+            <textarea
+              placeholder="Tell clients about your services, experience, or special skills"
+              value={form.bio}
+              onChange={(e) => setForm({ ...form, bio: e.target.value })}
+            />
+          )}
+
+          {error && <p className="error">{error}</p>}
+          <button className="primary-button" type="submit" disabled={loading || uploading}>
+            {uploading ? "Preparing image..." : loading ? "Creating account..." : `Create ${form.role === "CLIENT" ? "client" : "vendor"} account`}
+          </button>
+
+          <div className="auth-divider" aria-hidden="true" />
+          <div className="auth-switch">
+            <span>Already have an account?</span>
+            <Link className="ghost-button auth-link-button" to="/login">Sign in</Link>
+          </div>
+        </form>
+      </section>
     </main>
   );
 }
