@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,4 +35,18 @@ public class ServiceListing extends BaseEntity {
 
     @Column(nullable = false)
     private String category;
+
+    @Lob
+    @Column(name = "thumbnail_image")
+    private String thumbnailImage;
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
+    @Builder.Default
+    private List<ServicePricingOption> pricingOptions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
+    @Builder.Default
+    private List<ServiceMaterialOption> materialOptions = new ArrayList<>();
 }

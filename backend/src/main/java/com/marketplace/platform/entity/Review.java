@@ -25,4 +25,7 @@ public class Review extends BaseEntity {
 
     @Column(nullable = false, length = 2000)
     private String comment;
+
+    @OneToOne(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private ReviewReply reply;
 }

@@ -19,6 +19,55 @@ function roundedRectShape(width, height, radius) {
   return shape;
 }
 
+function disposeSceneResources(scene) {
+  const geometries = new Set();
+  const materials = new Set();
+
+  scene.traverse((object) => {
+    if (object.geometry) {
+      geometries.add(object.geometry);
+    }
+    if (object.material) {
+      const objectMaterials = Array.isArray(object.material) ? object.material : [object.material];
+      objectMaterials.forEach((material) => {
+        if (material) {
+          materials.add(material);
+        }
+      });
+    }
+  });
+
+  geometries.forEach((geometry) => {
+    geometry.dispose?.();
+  });
+  materials.forEach((material) => {
+    Object.values(material).forEach((value) => {
+      if (value?.isTexture) {
+        value.dispose();
+      }
+    });
+    material.dispose?.();
+  });
+}
+
+function addMediaQueryListener(query, handler) {
+  if (!query) {
+    return () => {};
+  }
+
+  if (typeof query.addEventListener === "function") {
+    query.addEventListener("change", handler);
+    return () => query.removeEventListener("change", handler);
+  }
+
+  if (typeof query.addListener === "function") {
+    query.addListener(handler);
+    return () => query.removeListener(handler);
+  }
+
+  return () => {};
+}
+
 export default function AuthScene({ mode = "signin" }) {
   const mountRef = useRef(null);
 
@@ -28,13 +77,37 @@ export default function AuthScene({ mode = "signin" }) {
       return undefined;
     }
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motionQuery =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
+    const pointerQuery =
+      typeof window.matchMedia === "function" ? window.matchMedia("(pointer: fine)") : null;
+    let reduceMotion = motionQuery?.matches ?? false;
+    const allowPointerTracking = pointerQuery?.matches ?? true;
+
     const scene = new THREE.Scene();
     scene.fog = new THREE.FogExp2(0x07111b, 0.06);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "high-performance"
+      });
+    } catch {
+      return undefined;
+    }
+
+    let isDisposed = false;
+    const updatePixelRatio = () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+    };
+
+    updatePixelRatio();
     renderer.setClearColor(0x000000, 0);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     mountNode.appendChild(renderer.domElement);
 
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
@@ -370,6 +443,7 @@ export default function AuthScene({ mode = "signin" }) {
       if (!clientWidth || !clientHeight) {
         return;
       }
+      updatePixelRatio();
       renderer.setSize(clientWidth, clientHeight, false);
       camera.aspect = clientWidth / clientHeight;
       camera.updateProjectionMatrix();
@@ -386,9 +460,21 @@ export default function AuthScene({ mode = "signin" }) {
       pointer.y = 0;
     };
 
+    const handleMotionChange = (event) => {
+      reduceMotion = event.matches;
+      if (event.matches) {
+        resetPointer();
+      }
+    };
+
+    const removeMotionListener = addMediaQueryListener(motionQuery, handleMotionChange);
     const clock = new THREE.Clock();
 
     const animate = () => {
+      if (isDisposed) {
+        return;
+      }
+
       frameId = window.requestAnimationFrame(animate);
       const elapsed = clock.getElapsedTime();
       const motion = reduceMotion ? 0.16 : 1;
@@ -441,59 +527,34 @@ export default function AuthScene({ mode = "signin" }) {
     animate();
 
     window.addEventListener("resize", resize);
-    mountNode.addEventListener("pointermove", onPointerMove);
-    mountNode.addEventListener("pointerleave", resetPointer);
+    let resizeObserver;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(resize);
+      resizeObserver.observe(mountNode);
+    }
+    if (allowPointerTracking) {
+      mountNode.addEventListener("pointermove", onPointerMove);
+      mountNode.addEventListener("pointerleave", resetPointer);
+    }
 
     return () => {
+      isDisposed = true;
       window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
-      mountNode.removeEventListener("pointermove", onPointerMove);
-      mountNode.removeEventListener("pointerleave", resetPointer);
+      resizeObserver?.disconnect();
+      if (allowPointerTracking) {
+        mountNode.removeEventListener("pointermove", onPointerMove);
+        mountNode.removeEventListener("pointerleave", resetPointer);
+      }
+      removeMotionListener();
       if (renderer.domElement.parentNode === mountNode) {
         mountNode.removeChild(renderer.domElement);
       }
-      platform.geometry.dispose();
-      platform.material.dispose();
-      platformGlow.geometry.dispose();
-      platformGlow.material.dispose();
-      serviceDisc.geometry.dispose();
-      serviceDisc.material.dispose();
-      gridGroup.children.forEach((child) => {
-        child.geometry.dispose();
-      });
-      gridMaterial.dispose();
-      houseBody.geometry.dispose();
-      wallMaterial.dispose();
-      roof.geometry.dispose();
-      roofMaterial.dispose();
-      door.geometry.dispose();
-      trimMaterial.dispose();
-      knob.geometry.dispose();
-      knob.material.dispose();
-      chimney.geometry.dispose();
-      routeTube.geometry.dispose();
-      routeTube.material.dispose();
-      routeNodes.forEach((node) => {
-        node.geometry.dispose();
-        node.material.dispose();
-      });
-      pulse.geometry.dispose();
-      pulse.material.dispose();
-      ring.geometry.dispose();
-      ring.material.dispose();
-      halo.geometry.dispose();
-      halo.material.dispose();
-      chipGeometry.dispose();
-      chipMaterial.dispose();
-      chips.forEach((chip) => {
-        chip.children.forEach((child) => {
-          child.geometry.dispose();
-          child.material.dispose();
-        });
-      });
-      starGeometry.dispose();
-      stars.material.dispose();
+      disposeSceneResources(scene);
+      scene.clear();
+      renderer.renderLists.dispose();
       renderer.dispose();
+      renderer.forceContextLoss?.();
     };
   }, [mode]);
 

@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -31,6 +33,10 @@ public class MarketplaceOrder extends BaseEntity {
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceListing service;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pricing_option_id")
+    private ServicePricingOption pricingOption;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status;
@@ -41,6 +47,28 @@ public class MarketplaceOrder extends BaseEntity {
     @Column(name = "preferred_date")
     private LocalDate preferredDate;
 
+    @Column(name = "selected_pricing_option_label")
+    private String selectedPricingOptionLabel;
+
+    @Column(name = "material_included", nullable = false)
+    private boolean materialIncluded;
+
+    @Column(name = "client_note", length = 2000)
+    private String clientNote;
+
+    @Column(name = "status_note", length = 2000)
+    private String statusNote;
+
     @Column(length = 2000)
     private String workSubmission;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, id ASC")
+    @Builder.Default
+    private List<OrderRequestAttachment> attachments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
+    @Builder.Default
+    private List<OrderSelectedMaterialOption> selectedMaterialOptions = new ArrayList<>();
 }
