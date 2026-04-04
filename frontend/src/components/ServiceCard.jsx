@@ -1,4 +1,5 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function ServiceCard({
   service,
@@ -10,8 +11,16 @@ export default function ServiceCard({
   isSaved,
   saveInProgress
 }) {
+  const pricingCount = service.pricingOptions?.length || 0;
+  const materialCount = service.materialOptions?.length || 0;
+
   return (
     <article className="card service-card">
+      {service.thumbnailImage && (
+        <div className="service-image-wrap">
+          <img src={service.thumbnailImage} alt={service.title} className="service-image" />
+        </div>
+      )}
       <div className="service-head">
         <span className="eyebrow">{service.category}</span>
         <span className="subtle">Published {new Date(service.createdAt).toLocaleDateString()}</span>
@@ -19,16 +28,27 @@ export default function ServiceCard({
       <h3>{service.title}</h3>
       <p>{service.description}</p>
       <div className="service-footer">
-        <div>
+        <div className="service-price-block">
+          <small className="subtle">Starting at</small>
           <strong>${service.price}</strong>
-          <span className="vendor-inline-name">
+          <Link className="vendor-inline-name service-vendor-link" to={`/vendors/${service.vendorId}`}>
             by {service.vendorName}
             {service.vendorVerified && <BadgeCheck size={15} className="verified-badge-inline" aria-label="Verified vendor" />}
-          </span>
+          </Link>
         </div>
+        {typeof service.vendorRating === "number" && (
+          <span className="service-rating-chip">
+            <Star size={14} /> {service.vendorRating.toFixed(1)}
+          </span>
+        )}
       </div>
       {service.vendorVerified && <p className="verified-chip"><BadgeCheck size={14} /> Verified vendor</p>}
-      <p className="quote-note">Upfront quote, no hidden costs.</p>
+      {(pricingCount > 1 || materialCount > 0) && (
+        <p className="quote-note">
+          {pricingCount > 1 ? `${pricingCount} pricing options` : "Single pricing option"}
+          {materialCount > 0 ? ` • ${materialCount} material add-ons` : ""}
+        </p>
+      )}
       <div className="service-actions">
         {onPrimaryAction && (
           <button className="primary-button" onClick={() => onPrimaryAction(service)} disabled={actionDisabled || bookingInProgress}>

@@ -1468,3 +1468,282 @@ textarea { min-height: 120px; resize: vertical; }
   border-radius: 999px;
   padding: 0.22rem 0.55rem;
 }
+
+.service-image-wrap {
+  width: calc(100% + 2.1rem);
+  margin: -1.05rem -1.05rem 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: #e8f1ff;
+}
+
+.service-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.service-price-block {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.service-vendor-link {
+  color: var(--primary-dark);
+  text-decoration: none;
+}
+
+.service-rating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  background: #fff7e6;
+  color: #9a6700;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.booking-panel {
+  margin: 1rem 0 1.4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.booking-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.booking-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.booking-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 1rem;
+}
+
+.booking-summary-card,
+.booking-config-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.booking-option-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.booking-option-card,
+.booking-checkbox-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.8rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(16, 27, 47, 0.1);
+  background: #f9fbff;
+}
+
+.booking-option-card input,
+.booking-checkbox-row input {
+  width: auto;
+}
+
+.booking-option-card.active {
+  border-color: #0f4a8a;
+  box-shadow: 0 10px 24px rgba(15, 74, 138, 0.08);
+}
+
+.booking-option-card div,
+.booking-checkbox-row span,
+.booking-checkbox-row small {
+  display: block;
+}
+
+.booking-checkbox-row {
+  grid-template-columns: auto 1fr auto auto;
+}
+
+.booking-preview-list,
+.order-attachments {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.order-attachment-thumb {
+  width: 4.8rem;
+  height: 4.8rem;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid rgba(16, 27, 47, 0.12);
+  background: #fff;
+}
+
+.booking-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 16px;
+  background: #eef5ff;
+  font-weight: 700;
+}
+
+.order-detail-list {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.order-detail-list span {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  background: #eef5ff;
+  color: #24456f;
+  font-size: 0.82rem;
+}
+
+.builder-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.builder-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.builder-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(16, 27, 47, 0.08);
+  background: #f8fbff;
+}
+
+.builder-inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+}
+
+.builder-inline-check input {
+  width: auto;
+}
+
+.dashboard-image-preview {
+  display: grid;
+  justify-items: start;
+}
+
+.vendor-profile-page {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+.vendor-profile-back {
+  display: inline-flex;
+  margin-bottom: 1rem;
+}
+
+.vendor-profile-hero {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.vendor-profile-brand {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.vendor-profile-avatar {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 2px solid #dbeafe;
+}
+
+.vendor-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.vendor-profile-stats article {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #f7fbff);
+  border: 1px solid rgba(16, 27, 47, 0.08);
+}
+
+.vendor-profile-stats strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.vendor-profile-works {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.vendor-review-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.review-reply-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background: #eef7f7;
+  border: 1px solid #cfe7e7;
+}
+
+@media (max-width: 980px) {
+  .booking-panel-grid,
+  .vendor-profile-brand,
+  .vendor-profile-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .booking-panel-head,
+  .builder-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .booking-option-card,
+  .booking-checkbox-row {
+    grid-template-columns: auto 1fr;
+  }
+
+  .vendor-profile-avatar {
+    width: 4.8rem;
+    height: 4.8rem;
+  }
+}

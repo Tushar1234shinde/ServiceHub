@@ -5,6 +5,7 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL,
     status VARCHAR(50) NOT NULL,
+    profile_image TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -16,6 +17,7 @@ CREATE TABLE vendors (
     rating NUMERIC(2,1) NOT NULL DEFAULT 0.0,
     total_earnings NUMERIC(12,2) NOT NULL DEFAULT 0.0,
     bio VARCHAR(500),
+    logo_image TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -27,6 +29,33 @@ CREATE TABLE services (
     description TEXT NOT NULL,
     price NUMERIC(12,2) NOT NULL,
     category VARCHAR(255) NOT NULL,
+    thumbnail_image TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE service_pricing_options (
+    id BIGSERIAL PRIMARY KEY,
+    service_id BIGINT NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    label VARCHAR(255) NOT NULL,
+    description VARCHAR(1000),
+    price NUMERIC(12,2) NOT NULL,
+    material_included BOOLEAN NOT NULL DEFAULT FALSE,
+    default_option BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE service_material_options (
+    id BIGSERIAL PRIMARY KEY,
+    service_id BIGINT NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(1000),
+    price_adjustment NUMERIC(12,2) NOT NULL DEFAULT 0.0,
+    default_selected BOOLEAN NOT NULL DEFAULT FALSE,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,9 +65,36 @@ CREATE TABLE orders (
     client_id BIGINT NOT NULL REFERENCES users(id),
     vendor_id BIGINT NOT NULL REFERENCES vendors(id),
     service_id BIGINT NOT NULL REFERENCES services(id),
+    pricing_option_id BIGINT REFERENCES service_pricing_options(id),
     status VARCHAR(50) NOT NULL,
     price NUMERIC(12,2) NOT NULL,
+    preferred_date DATE,
+    selected_pricing_option_label VARCHAR(255),
+    material_included BOOLEAN NOT NULL DEFAULT FALSE,
+    client_note TEXT,
+    status_note TEXT,
     work_submission TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_request_attachments (
+    id BIGSERIAL PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    image_data TEXT NOT NULL,
+    caption VARCHAR(255),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_selected_material_options (
+    id BIGSERIAL PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    material_option_id BIGINT,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(1000),
+    price_adjustment NUMERIC(12,2) NOT NULL DEFAULT 0.0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -73,12 +129,71 @@ CREATE TABLE reviews (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE review_replies (
+    id BIGSERIAL PRIMARY KEY,
+    review_id BIGINT NOT NULL UNIQUE REFERENCES reviews(id) ON DELETE CASCADE,
+    vendor_id BIGINT NOT NULL REFERENCES vendors(id),
+    comment TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vendor_works (
+    id BIGSERIAL PRIMARY KEY,
+    vendor_id BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    image_data TEXT NOT NULL,
+    featured BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE refresh_tokens (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
     token TEXT NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Future-ready extension tables for vendor social posts and in-app messaging.
+CREATE TABLE vendor_posts (
+    id BIGSERIAL PRIMARY KEY,
+    vendor_id BIGINT NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+    caption TEXT,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE vendor_post_media (
+    id BIGSERIAL PRIMARY KEY,
+    post_id BIGINT NOT NULL REFERENCES vendor_posts(id) ON DELETE CASCADE,
+    media_data TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversations (
+    id BIGSERIAL PRIMARY KEY,
+    client_id BIGINT NOT NULL REFERENCES users(id),
+    vendor_id BIGINT NOT NULL REFERENCES vendors(id),
+    status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE conversation_messages (
+    id BIGSERIAL PRIMARY KEY,
+    conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    sender_user_id BIGINT NOT NULL REFERENCES users(id),
+    body TEXT NOT NULL,
+    contains_blocked_contact BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

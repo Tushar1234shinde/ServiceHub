@@ -1,5 +1,6 @@
-﻿import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ServiceCard from "../components/ServiceCard";
 import CallToAction from "../components/home/CallToAction";
 import CategoryGrid from "../components/home/CategoryGrid";
@@ -38,19 +39,19 @@ const serviceTypeKeywords = {
 const platformFeatures = [
   {
     title: "Verified Technicians",
-    detail: "Access to screened professionals, including plumbers, electricians, and cleaners."
+    detail: "Access screened professionals with live profiles, reviews, and proof of previous work."
   },
   {
     title: "Booking Convenience",
-    detail: "Easy booking, tracking, and scheduling of appointments."
+    detail: "Browse publicly, then sign in only when you are ready to customize and purchase a service."
   },
   {
     title: "Transparent Pricing",
-    detail: "Upfront quotes, no hidden costs."
+    detail: "Choose vendor pricing modes and optional material add-ons before funding escrow."
   },
   {
-    title: "Service Types",
-    detail: "Repairs, deep cleaning, pest control, and home maintenance."
+    title: "Proof of Work",
+    detail: "Review real vendor portfolios and completed client feedback before booking."
   }
 ];
 
@@ -64,27 +65,77 @@ function matchesServiceType(service, selectedType) {
   return keywords.some((keyword) => haystack.includes(keyword.toLowerCase()));
 }
 
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(new Error("Could not read the selected image"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function getDefaultPricingOption(service) {
+  return service?.pricingOptions?.find((option) => option.defaultOption) || service?.pricingOptions?.[0] || null;
+}
+
+function getDefaultMaterialOptionIds(service) {
+  return (service?.materialOptions || [])
+    .filter((option) => option.defaultSelected)
+    .map((option) => String(option.id));
+}
+
 export default function MarketplacePage() {
   const { user, token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [services, setServices] = useState([]);
+  const [homepageData, setHomepageData] = useState({ topVendors: [], recentWorks: [], testimonials: [] });
   const [savedServiceIds, setSavedServiceIds] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [serviceType, setServiceType] = useState("");
   const [sortBy, setSortBy] = useState("recent");
-  const [preferredDate, setPreferredDate] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [bookingServiceId, setBookingServiceId] = useState(null);
   const [savingServiceId, setSavingServiceId] = useState(null);
+  const [submittingBooking, setSubmittingBooking] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    pricingOptionId: "",
+    materialOptionIds: [],
+    preferredDate: "",
+    clientNote: "",
+    attachments: []
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput.trim()), 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadHomepage() {
+      try {
+        const data = await api.getHomepageData();
+        if (isActive) {
+          setHomepageData(data);
+        }
+      } catch {
+        if (isActive) {
+          setHomepageData({ topVendors: [], recentWorks: [], testimonials: [] });
+        }
+      }
+    }
+
+    loadHomepage();
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -141,6 +192,35 @@ export default function MarketplacePage() {
     };
   }, [user, token]);
 
+  const selectedServiceId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const rawServiceId = Number(params.get("service"));
+    if (params.get("booking") !== "1" || Number.isNaN(rawServiceId) || rawServiceId <= 0) {
+      return null;
+    }
+    return rawServiceId;
+  }, [location.search]);
+
+  const selectedService = useMemo(
+    () => services.find((service) => service.id === selectedServiceId) || null,
+    [services, selectedServiceId]
+  );
+
+  useEffect(() => {
+    if (!selectedService) {
+      return;
+    }
+
+    const defaultPricingOption = getDefaultPricingOption(selectedService);
+    setBookingForm({
+      pricingOptionId: defaultPricingOption?.id ? String(defaultPricingOption.id) : "",
+      materialOptionIds: getDefaultMaterialOptionIds(selectedService),
+      preferredDate: "",
+      clientNote: "",
+      attachments: []
+    });
+  }, [selectedService]);
+
   const visibleServices = useMemo(() => {
     let list = [...services];
 
@@ -158,43 +238,47 @@ export default function MarketplacePage() {
     return list;
   }, [services, serviceType, sortBy]);
 
-  const topVendors = useMemo(() => {
-    const map = new Map();
-    services.forEach((service) => {
-      const key = service.vendorId;
-      const current = map.get(key) || {
-        id: key,
-        name: service.vendorName,
-        count: 0,
-        categories: {},
-        verified: Boolean(service.vendorVerified)
-      };
-      current.count += 1;
-      current.categories[service.category] = (current.categories[service.category] || 0) + 1;
-      current.verified = current.verified || Boolean(service.vendorVerified);
-      map.set(key, current);
-    });
+  const vendorCount = useMemo(() => new Set(services.map((service) => service.vendorId)).size, [services]);
 
-    return Array.from(map.values())
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5)
-      .map((vendor, index) => {
-        const topCategory = Object.entries(vendor.categories).sort((a, b) => b[1] - a[1])[0]?.[0] || "Home Services";
-        return {
-          id: vendor.id,
-          name: vendor.name,
-          serviceType: topCategory,
-          rating: Number((4.6 + (index % 4) * 0.1).toFixed(1)),
-          reviews: vendor.count * 14 + 35,
-          verified: vendor.verified,
-          image: `https://ui-avatars.com/api/?name=${encodeURIComponent(vendor.name)}&background=0891b2&color=fff&size=140`
-        };
-      });
-  }, [services]);
+  const selectedPricingOption = useMemo(() => {
+    if (!selectedService) {
+      return null;
+    }
+    return selectedService.pricingOptions?.find((option) => String(option.id) === bookingForm.pricingOptionId)
+      || getDefaultPricingOption(selectedService);
+  }, [bookingForm.pricingOptionId, selectedService]);
 
-  async function handleBook(service) {
+  const selectedMaterialOptions = useMemo(() => {
+    if (!selectedService) {
+      return [];
+    }
+    return (selectedService.materialOptions || []).filter((option) => bookingForm.materialOptionIds.includes(String(option.id)));
+  }, [bookingForm.materialOptionIds, selectedService]);
+
+  const bookingTotal = useMemo(() => {
+    if (!selectedService) {
+      return "0.00";
+    }
+    const base = Number(selectedPricingOption?.price ?? selectedService.price ?? 0);
+    const materials = selectedMaterialOptions.reduce((sum, option) => sum + Number(option.priceAdjustment ?? 0), 0);
+    return (base + materials).toFixed(2);
+  }, [selectedMaterialOptions, selectedPricingOption, selectedService]);
+
+  function navigateToLogin(returnPath) {
+    navigate("/login", { state: { from: returnPath } });
+  }
+
+  function setBookingRoute(serviceId) {
+    if (!serviceId) {
+      navigate({ pathname: "/", search: "" }, { replace: true });
+      return;
+    }
+    navigate({ pathname: "/", search: `?service=${serviceId}&booking=1` }, { replace: false });
+  }
+
+  function openBooking(service) {
     if (!user) {
-      navigate("/login");
+      navigateToLogin(`/?service=${service.id}&booking=1`);
       return;
     }
 
@@ -203,8 +287,64 @@ export default function MarketplacePage() {
       return;
     }
 
-    if (preferredDate) {
-      const selectedDate = new Date(preferredDate);
+    setError("");
+    setNotice("");
+    setBookingRoute(service.id);
+    window.requestAnimationFrame(() => {
+      document.getElementById("booking-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function closeBooking() {
+    setBookingRoute(null);
+  }
+
+  async function handleAttachmentChange(event) {
+    const files = Array.from(event.target.files || []).slice(0, 5);
+    if (files.length === 0) {
+      return;
+    }
+
+    try {
+      const attachments = await Promise.all(
+        files.map(async (file, index) => ({
+          imageData: await readFileAsDataUrl(file),
+          caption: `Reference image ${index + 1}`
+        }))
+      );
+      setBookingForm((current) => ({ ...current, attachments }));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  function toggleMaterialOption(optionId) {
+    setBookingForm((current) => ({
+      ...current,
+      materialOptionIds: current.materialOptionIds.includes(optionId)
+        ? current.materialOptionIds.filter((id) => id !== optionId)
+        : [...current.materialOptionIds, optionId]
+    }));
+  }
+
+  async function handleBookSubmit(event) {
+    event.preventDefault();
+    if (!selectedService) {
+      return;
+    }
+
+    if (!user) {
+      navigateToLogin(`/?service=${selectedService.id}&booking=1`);
+      return;
+    }
+
+    if (user.role !== "CLIENT") {
+      setError("Only client accounts can place orders.");
+      return;
+    }
+
+    if (bookingForm.preferredDate) {
+      const selectedDate = new Date(bookingForm.preferredDate);
       selectedDate.setHours(0, 0, 0, 0);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -217,21 +357,33 @@ export default function MarketplacePage() {
     try {
       setError("");
       setNotice("");
-      setBookingServiceId(service.id);
-      const order = await api.createOrder({ serviceId: service.id, preferredDate: preferredDate || null }, token);
+      setSubmittingBooking(true);
+      const order = await api.createOrder({
+        serviceId: selectedService.id,
+        pricingOptionId: bookingForm.pricingOptionId ? Number(bookingForm.pricingOptionId) : null,
+        materialOptionIds: bookingForm.materialOptionIds.map(Number),
+        preferredDate: bookingForm.preferredDate || null,
+        clientNote: bookingForm.clientNote.trim(),
+        attachments: bookingForm.attachments.map((attachment) => ({
+          imageData: attachment.imageData,
+          caption: attachment.caption
+        }))
+      }, token);
+
       await api.createPayment({ orderId: order.id, idempotencyKey: `escrow-${order.id}-${Date.now()}` }, token);
       const scheduleText = order.preferredDate ? ` Scheduled for ${new Date(order.preferredDate).toLocaleDateString()}.` : "";
       setNotice(`Order #${order.id} created and escrow funded.${scheduleText}`);
+      closeBooking();
     } catch (err) {
       setError(err.message);
     } finally {
-      setBookingServiceId(null);
+      setSubmittingBooking(false);
     }
   }
 
   async function handleSaveToggle(service) {
     if (!user) {
-      navigate("/login");
+      navigateToLogin(`${location.pathname}${location.search}`);
       return;
     }
 
@@ -266,7 +418,7 @@ export default function MarketplacePage() {
     <main className="market-home">
       <Hero
         servicesCount={services.length}
-        vendorsCount={topVendors.length}
+        vendorsCount={vendorCount}
         savedCount={savedServiceIds.length}
         onFindVendors={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
         onBecomeVendor={() => navigate(user ? "/dashboard" : "/register")}
@@ -286,15 +438,15 @@ export default function MarketplacePage() {
         </div>
       </section>
 
-      <VendorCarousel vendors={topVendors} />
+      <VendorCarousel vendors={homepageData.topVendors} />
       <CategoryGrid />
-      <RecentWorks />
-      <Testimonials />
+      <RecentWorks works={homepageData.recentWorks} />
+      <Testimonials testimonials={homepageData.testimonials} />
 
       <section className="page section-block" id="services">
         <div className="section-headline">
           <h2>Live Marketplace Listings</h2>
-          <p>Search, filter, save, and book with escrow protection.</p>
+          <p>Browse publicly, then customize pricing, material choices, and booking references before you fund escrow.</p>
         </div>
 
         <div className="service-type-chips">
@@ -322,11 +474,117 @@ export default function MarketplacePage() {
             <option value="price-asc">Price low to high</option>
             <option value="price-desc">Price high to low</option>
           </select>
-          <input type="date" value={preferredDate} onChange={(e) => setPreferredDate(e.target.value)} />
         </section>
 
         {notice && <p className="notice">{notice}</p>}
         {error && <p className="error">{error}</p>}
+        {selectedService && (
+          <section className="card booking-panel" id="booking-panel">
+            <div className="booking-panel-head">
+              <div>
+                <span className="eyebrow">Customize booking</span>
+                <h3>{selectedService.title}</h3>
+                <p className="subtle">Choose the vendor pricing mode, add material preferences, attach reference photos, and place the order.</p>
+              </div>
+              <button type="button" className="ghost-button booking-close" onClick={closeBooking}>
+                <X size={16} /> Close
+              </button>
+            </div>
+
+            <form className="booking-panel-grid" onSubmit={handleBookSubmit}>
+              <div className="booking-summary-card">
+                {selectedService.thumbnailImage && <img src={selectedService.thumbnailImage} alt={selectedService.title} className="service-image" />}
+                <p>{selectedService.description}</p>
+                <p className="subtle">Vendor: {selectedService.vendorName}</p>
+              </div>
+
+              <div className="booking-config-card">
+                <div className="booking-option-list">
+                  <strong>Pricing options</strong>
+                  {(selectedService.pricingOptions || []).map((option) => (
+                    <label key={option.id} className={`booking-option-card ${String(option.id) === bookingForm.pricingOptionId ? "active" : ""}`}>
+                      <input
+                        type="radio"
+                        name="pricingOption"
+                        value={option.id}
+                        checked={String(option.id) === bookingForm.pricingOptionId}
+                        onChange={(event) => setBookingForm((current) => ({ ...current, pricingOptionId: event.target.value }))}
+                      />
+                      <div>
+                        <strong>{option.label}</strong>
+                        <span>{option.description || (option.materialIncluded ? "Includes material cost" : "Client-managed material")}</span>
+                      </div>
+                      <span>${option.price}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {(selectedService.materialOptions || []).length > 0 && (
+                  <div className="booking-option-list">
+                    <strong>Material add-ons</strong>
+                    {(selectedService.materialOptions || []).map((option) => (
+                      <label key={option.id} className="booking-checkbox-row">
+                        <input
+                          type="checkbox"
+                          checked={bookingForm.materialOptionIds.includes(String(option.id))}
+                          onChange={() => toggleMaterialOption(String(option.id))}
+                        />
+                        <span>{option.name}</span>
+                        <small>{option.description || "Optional upgrade"}</small>
+                        <strong>+${option.priceAdjustment}</strong>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                <label>
+                  Preferred date
+                  <input
+                    type="date"
+                    value={bookingForm.preferredDate}
+                    onChange={(event) => setBookingForm((current) => ({ ...current, preferredDate: event.target.value }))}
+                  />
+                </label>
+
+                <label>
+                  Notes for vendor
+                  <textarea
+                    placeholder="Share room details, measurements, preferred timing, or anything the vendor should know"
+                    value={bookingForm.clientNote}
+                    onChange={(event) => setBookingForm((current) => ({ ...current, clientNote: event.target.value }))}
+                  />
+                </label>
+
+                <label className="upload-field">
+                  <span className="upload-label">Upload reference photos</span>
+                  <span className="upload-help">You can attach up to 5 images that help the vendor understand the request.</span>
+                  <input type="file" accept="image/*" multiple onChange={handleAttachmentChange} />
+                </label>
+
+                {bookingForm.attachments.length > 0 && (
+                  <div className="booking-preview-list">
+                    {bookingForm.attachments.map((attachment, index) => (
+                      <img key={`${attachment.caption}-${index}`} src={attachment.imageData} alt={attachment.caption} className="order-attachment-thumb" />
+                    ))}
+                  </div>
+                )}
+
+                <div className="booking-total-row">
+                  <span>Total estimate</span>
+                  <strong>${bookingTotal}</strong>
+                </div>
+
+                <div className="service-actions">
+                  <button className="primary-button" type="submit" disabled={submittingBooking}>
+                    {submittingBooking ? "Creating booking..." : "Fund escrow and book"}
+                  </button>
+                  <button className="ghost-button" type="button" onClick={closeBooking}>Cancel</button>
+                </div>
+              </div>
+            </form>
+          </section>
+        )}
+
         {loading && <p className="subtle">Loading services...</p>}
         {!loading && visibleServices.length === 0 && <p className="subtle">No services found for your current filters.</p>}
 
@@ -335,8 +593,8 @@ export default function MarketplacePage() {
             <ServiceCard
               key={service.id}
               service={service}
-              onPrimaryAction={handleBook}
-              actionLabel={user?.role === "CLIENT" ? "Book with escrow" : "Login as client to book"}
+              onPrimaryAction={openBooking}
+              actionLabel={user?.role === "CLIENT" || !user ? "Customize & book" : "Client account required"}
               actionDisabled={Boolean(user && user.role !== "CLIENT")}
               bookingInProgress={bookingServiceId === service.id}
               onSaveAction={handleSaveToggle}

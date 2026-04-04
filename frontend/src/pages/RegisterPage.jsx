@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
 
@@ -32,6 +32,7 @@ function readFileAsDataUrl(file) {
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -99,7 +100,12 @@ export default function RegisterPage() {
         profileImage: form.role === "CLIENT" ? form.profileImage : "",
         logoImage: form.role === "VENDOR" ? form.logoImage : ""
       });
-      navigate("/dashboard");
+      const redirectTarget = typeof location.state?.from === "string"
+        ? location.state.from
+        : form.role === "CLIENT"
+          ? "/"
+          : "/dashboard";
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -217,7 +223,7 @@ export default function RegisterPage() {
           <div className="auth-divider" aria-hidden="true" />
           <div className="auth-switch">
             <span>Already have an account?</span>
-            <Link className="ghost-button auth-link-button" to="/login">Sign in</Link>
+            <Link className="ghost-button auth-link-button" to="/login" state={location.state}>Sign in</Link>
           </div>
         </form>
       </section>

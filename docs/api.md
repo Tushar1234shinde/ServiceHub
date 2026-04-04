@@ -11,7 +11,8 @@ Base URL: `http://localhost:8080`
   "name": "Asha Client",
   "email": "asha@example.com",
   "password": "Password@123",
-  "role": "CLIENT"
+  "role": "CLIENT",
+  "profileImage": "data:image/png;base64,..."
 }
 ```
 
@@ -23,7 +24,8 @@ Vendor example:
   "email": "ravi@example.com",
   "password": "Password@123",
   "role": "VENDOR",
-  "bio": "Full stack freelancer"
+  "bio": "Painting and renovation specialist",
+  "logoImage": "data:image/png;base64,..."
 }
 ```
 
@@ -36,13 +38,14 @@ Vendor example:
 }
 ```
 
-### `POST /auth/refresh`
+## Marketplace Homepage
 
-```json
-{
-  "refreshToken": "jwt-refresh-token"
-}
-```
+### `GET /marketplace/homepage`
+
+Returns the real homepage aggregate payload:
+- top vendors
+- recent vendor works
+- testimonial reviews
 
 ## Services
 
@@ -54,12 +57,70 @@ Optional query params: `search`, `category`
 
 ```json
 {
-  "title": "Website Development",
-  "description": "Responsive React and Spring Boot build",
-  "price": 450.00,
-  "category": "Development"
+  "title": "Premium wall painting",
+  "description": "Interior and exterior painting with inspection and cleanup.",
+  "price": 180.00,
+  "category": "Painting",
+  "thumbnailImage": "data:image/png;base64,...",
+  "pricingOptions": [
+    {
+      "label": "Without material",
+      "price": 180.00,
+      "materialIncluded": false,
+      "defaultOption": true,
+      "sortOrder": 0
+    },
+    {
+      "label": "With material",
+      "price": 260.00,
+      "materialIncluded": true,
+      "defaultOption": false,
+      "sortOrder": 1
+    }
+  ],
+  "materialOptions": [
+    {
+      "name": "Premium sealer",
+      "description": "Moisture-resistant coat",
+      "priceAdjustment": 35.00,
+      "defaultSelected": false,
+      "sortOrder": 0
+    }
+  ]
 }
 ```
+
+## Vendor Public Profile
+
+### `GET /vendors/public/{vendorId}`
+
+Returns:
+- vendor profile summary
+- live services
+- published works
+- client reviews
+
+## Vendor Workspace
+
+### `GET /vendors/me/works`
+
+### `POST /vendors/me/works`
+
+```json
+{
+  "title": "Villa repaint and texture finish",
+  "description": "Exterior repaint with weatherproof coating and balcony repair.",
+  "category": "Painting",
+  "image": "data:image/png;base64,...",
+  "featured": true
+}
+```
+
+### `PUT /vendors/me/works/{workId}`
+
+### `DELETE /vendors/me/works/{workId}`
+
+### `GET /vendors/me/reviews`
 
 ## Orders
 
@@ -67,7 +128,17 @@ Optional query params: `search`, `category`
 
 ```json
 {
-  "serviceId": 1
+  "serviceId": 1,
+  "pricingOptionId": 3,
+  "materialOptionIds": [5, 7],
+  "preferredDate": "2026-04-20",
+  "clientNote": "Living room and hallway need repainting.",
+  "attachments": [
+    {
+      "imageData": "data:image/png;base64,...",
+      "caption": "Current wall condition"
+    }
+  ]
 }
 ```
 
@@ -76,7 +147,17 @@ Optional query params: `search`, `category`
 ```json
 {
   "status": "SUBMITTED",
-  "submissionNote": "Initial delivery uploaded"
+  "submissionNote": "Final work uploaded for review",
+  "statusNote": "Please inspect the finish and approve if it looks good."
+}
+```
+
+Vendor decline example:
+
+```json
+{
+  "status": "CANCELLED",
+  "statusNote": "Unable to serve this area on the requested date."
 }
 ```
 
@@ -108,6 +189,14 @@ Optional query params: `search`, `category`
   "orderId": 1,
   "rating": 5,
   "comment": "Excellent delivery and communication."
+}
+```
+
+### `POST /reviews/{reviewId}/reply`
+
+```json
+{
+  "comment": "Thank you for the detailed feedback."
 }
 ```
 

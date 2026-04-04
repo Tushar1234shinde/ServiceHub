@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const redirectTarget = typeof location.state?.from === "string" ? location.state.from : "/";
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -16,7 +19,7 @@ export default function LoginPage() {
       setError("");
       setLoading(true);
       await login(form);
-      navigate("/dashboard");
+      navigate(redirectTarget, { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -78,7 +81,7 @@ export default function LoginPage() {
           <div className="auth-divider" aria-hidden="true" />
           <div className="auth-switch">
             <span>New here?</span>
-            <Link className="ghost-button auth-link-button" to="/register">Create account</Link>
+            <Link className="ghost-button auth-link-button" to="/register" state={location.state}>Create account</Link>
           </div>
         </form>
       </section>
