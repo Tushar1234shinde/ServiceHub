@@ -1,5 +1,6 @@
 package com.marketplace.platform.controller;
 
+import com.marketplace.platform.dto.ReviewReplyRequest;
 import com.marketplace.platform.dto.ReviewRequest;
 import com.marketplace.platform.dto.ReviewResponse;
 import com.marketplace.platform.entity.User;
@@ -29,5 +30,13 @@ public class ReviewController {
     @GetMapping
     public List<ReviewResponse> getReviews(@RequestParam Long vendorId) {
         return reviewService.getReviews(vendorId);
+    }
+
+    @PostMapping("/{reviewId}/reply")
+    public ReviewResponse replyToReview(Authentication authentication,
+                                        @PathVariable Long reviewId,
+                                        @Valid @RequestBody ReviewReplyRequest request) {
+        User user = securityUtils.getCurrentUser(authentication);
+        return reviewService.replyToReview(user, reviewId, request);
     }
 }

@@ -1,19 +1,23 @@
 package com.marketplace.platform.service;
 
-import com.marketplace.platform.dto.OrderCreateRequest;
-import com.marketplace.platform.dto.OrderResponse;
-import com.marketplace.platform.dto.OrderStatusUpdateRequest;
+import com.marketplace.platform.dto.*;
 import com.marketplace.platform.entity.*;
 import com.marketplace.platform.exception.BadRequestException;
 import com.marketplace.platform.exception.ResourceNotFoundException;
 import com.marketplace.platform.repository.OrderRepository;
+import com.marketplace.platform.repository.PaymentRepository;
 import com.marketplace.platform.repository.ServiceListingRepository;
+import com.marketplace.platform.repository.TransactionLedgerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,8 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ServiceListingRepository serviceListingRepository;
+    private final PaymentRepository paymentRepository;
+    private final TransactionLedgerRepository transactionLedgerRepository;
 
     @Transactional
     public OrderResponse createOrder(User client, OrderCreateRequest request) {
@@ -34,16 +40,35 @@ public class OrderService {
         if (preferredDate != null && preferredDate.isBefore(LocalDate.now())) {
             throw new BadRequestException("Preferred booking date cannot be in the past");
         }
+        if (request.attachments() != null && request.attachments().size() > 5) {
+            throw new BadRequestException("You can upload up to 5 reference images per request");
+        }
 
-        MarketplaceOrder order = orderRepository.save(MarketplaceOrder.builder()
+        ServicePricingOption pricingOption = resolvePricingOption(service, request.pricingOptionId());
+        List<ServiceMaterialOption> selectedMaterialOptions = resolveMaterialOptions(service, request.materialOptionIds());
+
+        BigDecimal totalPrice = pricingOption == null ? service.getPrice() : pricingOption.getPrice();
+        BigDecimal materialTotal = selectedMaterialOptions.stream()
+                .map(ServiceMaterialOption::getPriceAdjustment)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        MarketplaceOrder order = MarketplaceOrder.builder()
                 .client(client)
                 .vendor(service.getVendor())
                 .service(service)
+                .pricingOption(pricingOption)
                 .status(OrderStatus.CREATED)
-                .price(service.getPrice())
+                .price(totalPrice.add(materialTotal))
                 .preferredDate(preferredDate)
-                .build());
-        return toResponse(order);
+                .selectedPricingOptionLabel(pricingOption == null ? "Standard quote" : pricingOption.getLabel())
+                .materialIncluded(pricingOption != null && pricingOption.isMaterialIncluded())
+                .clientNote(trimToNull(request.clientNote()))
+                .build();
+
+        order.getAttachments().addAll(buildAttachments(order, request.attachments()));
+        order.getSelectedMaterialOptions().addAll(buildMaterialSelections(order, selectedMaterialOptions));
+
+        return toResponse(orderRepository.save(order));
     }
 
     @Transactional(readOnly = true)
@@ -70,15 +95,104 @@ public class OrderService {
         }
 
         validateTransition(order.getStatus(), request.status(), isVendorOwner, isClientOwner, isAdmin);
-        if (request.status() == OrderStatus.SUBMITTED && (request.submissionNote() == null || request.submissionNote().isBlank())) {
+        String note = trimToNull(request.statusNote() != null ? request.statusNote() : request.submissionNote());
+
+        if (request.status() == OrderStatus.SUBMITTED && trimToNull(request.submissionNote()) == null) {
             throw new BadRequestException("Submission note is required when submitting work");
+        }
+        if (request.status() == OrderStatus.CANCELLED && isVendorOwner && note == null) {
+            throw new BadRequestException("Decline reason is required when a vendor cancels an order");
         }
 
         order.setStatus(request.status());
         if (request.status() == OrderStatus.SUBMITTED) {
-            order.setWorkSubmission(request.submissionNote());
+            order.setWorkSubmission(trimToNull(request.submissionNote()));
+        }
+        if (note != null) {
+            order.setStatusNote(note);
+        }
+        if (request.status() == OrderStatus.CANCELLED) {
+            refundHeldPaymentIfNeeded(order);
         }
         return toResponse(order);
+    }
+
+    private ServicePricingOption resolvePricingOption(ServiceListing service, Long pricingOptionId) {
+        if (pricingOptionId == null) {
+            return service.getPricingOptions().stream()
+                    .filter(ServicePricingOption::isDefaultOption)
+                    .findFirst()
+                    .orElse(service.getPricingOptions().stream().findFirst().orElse(null));
+        }
+
+        return service.getPricingOptions().stream()
+                .filter(option -> pricingOptionId.equals(option.getId()))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Selected pricing option does not belong to this service"));
+    }
+
+    private List<ServiceMaterialOption> resolveMaterialOptions(ServiceListing service, List<Long> materialOptionIds) {
+        if (materialOptionIds == null || materialOptionIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, ServiceMaterialOption> availableOptions = service.getMaterialOptions().stream()
+                .filter(ServiceMaterialOption::isActive)
+                .collect(Collectors.toMap(ServiceMaterialOption::getId, Function.identity()));
+
+        return materialOptionIds.stream()
+                .distinct()
+                .map(optionId -> {
+                    ServiceMaterialOption option = availableOptions.get(optionId);
+                    if (option == null) {
+                        throw new BadRequestException("Selected material option does not belong to this service");
+                    }
+                    return option;
+                })
+                .toList();
+    }
+
+    private List<OrderRequestAttachment> buildAttachments(MarketplaceOrder order, List<OrderAttachmentRequest> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+
+        return attachments.stream()
+                .map(attachment -> OrderRequestAttachment.builder()
+                        .order(order)
+                        .imageData(attachment.imageData().trim())
+                        .caption(trimToNull(attachment.caption()))
+                        .sortOrder(attachments.indexOf(attachment))
+                        .build())
+                .toList();
+    }
+
+    private List<OrderSelectedMaterialOption> buildMaterialSelections(MarketplaceOrder order, List<ServiceMaterialOption> selectedMaterialOptions) {
+        return selectedMaterialOptions.stream()
+                .map(option -> OrderSelectedMaterialOption.builder()
+                        .order(order)
+                        .materialOptionId(option.getId())
+                        .name(option.getName())
+                        .description(option.getDescription())
+                        .priceAdjustment(option.getPriceAdjustment())
+                        .build())
+                .toList();
+    }
+
+    private void refundHeldPaymentIfNeeded(MarketplaceOrder order) {
+        Payment payment = paymentRepository.findByOrderId(order.getId()).orElse(null);
+        if (payment == null || payment.getStatus() != PaymentStatus.HELD) {
+            return;
+        }
+
+        payment.setStatus(PaymentStatus.REFUNDED);
+        transactionLedgerRepository.save(TransactionLedger.builder()
+                .user(order.getClient())
+                .type(TransactionType.CREDIT)
+                .amount(payment.getAmount())
+                .referenceId("PAY-" + payment.getId())
+                .description("Escrow refunded for cancelled order #" + order.getId())
+                .build());
     }
 
     private void validateTransition(OrderStatus current, OrderStatus next, boolean isVendor, boolean isClient, boolean isAdmin) {
@@ -89,6 +203,9 @@ public class OrderService {
             throw new BadRequestException("Use the payment API to move an order from CREATED to PAID");
         }
         if (current == OrderStatus.PAID && next == OrderStatus.IN_PROGRESS && isVendor) {
+            return;
+        }
+        if (current == OrderStatus.PAID && next == OrderStatus.CANCELLED && isVendor) {
             return;
         }
         if (current == OrderStatus.IN_PROGRESS && next == OrderStatus.SUBMITTED && isVendor) {
@@ -109,6 +226,25 @@ public class OrderService {
     }
 
     private OrderResponse toResponse(MarketplaceOrder order) {
+        List<OrderMaterialSelectionResponse> selectedMaterialOptions = order.getSelectedMaterialOptions().stream()
+                .map(option -> new OrderMaterialSelectionResponse(
+                        option.getId(),
+                        option.getMaterialOptionId(),
+                        option.getName(),
+                        option.getDescription(),
+                        option.getPriceAdjustment()
+                ))
+                .toList();
+
+        List<OrderAttachmentResponse> attachments = order.getAttachments().stream()
+                .map(attachment -> new OrderAttachmentResponse(
+                        attachment.getId(),
+                        attachment.getImageData(),
+                        attachment.getCaption(),
+                        attachment.getSortOrder()
+                ))
+                .toList();
+
         return new OrderResponse(
                 order.getId(),
                 order.getClient().getId(),
@@ -121,7 +257,21 @@ public class OrderService {
                 order.getPrice(),
                 order.getWorkSubmission(),
                 order.getPreferredDate() == null ? null : order.getPreferredDate().toString(),
+                order.getSelectedPricingOptionLabel(),
+                order.isMaterialIncluded(),
+                order.getClientNote(),
+                order.getStatusNote(),
+                selectedMaterialOptions,
+                attachments,
                 order.getCreatedAt().toString()
         );
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }
