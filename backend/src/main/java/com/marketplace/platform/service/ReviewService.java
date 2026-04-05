@@ -35,8 +35,8 @@ public class ReviewService {
         if (!order.getClient().getId().equals(currentUserId)) {
             throw new BadRequestException("Only the client can review this order");
         }
-        if (order.getStatus() != OrderStatus.COMPLETED) {
-            throw new BadRequestException("Reviews are allowed only after completion");
+        if (order.getStatus() != OrderStatus.APPROVED && order.getStatus() != OrderStatus.COMPLETED) {
+            throw new BadRequestException("Reviews are allowed once the work is approved or completed");
         }
         if (reviewRepository.findByOrderId(order.getId()).isPresent()) {
             throw new BadRequestException("A review has already been submitted for this order");

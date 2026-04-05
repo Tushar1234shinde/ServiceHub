@@ -219,10 +219,10 @@ public class OrderService {
                 && (isClient || isAdmin)) {
             return;
         }
-        if (current == OrderStatus.APPROVED && next == OrderStatus.COMPLETED && isAdmin) {
+        if ((current == OrderStatus.APPROVED || current == OrderStatus.DISPUTE) && next == OrderStatus.COMPLETED && isAdmin) {
             return;
         }
-        throw new BadRequestException("Invalid order state transition");
+        throw new BadRequestException("Invalid order state transition for your role or current status");
     }
 
     private OrderResponse toResponse(MarketplaceOrder order) {

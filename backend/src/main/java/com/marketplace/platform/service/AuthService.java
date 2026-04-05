@@ -102,11 +102,9 @@ public class AuthService {
                 .build());
 
         boolean verified = user.getRole() == Role.VENDOR && user.getVendorProfile() != null && user.getVendorProfile().isVerified();
-        String image = verified && user.getVendorProfile() != null
+        String image = (user.getRole() == Role.VENDOR && user.getVendorProfile() != null)
                 ? user.getVendorProfile().getLogoImage()
-                : user.getRole() == Role.VENDOR && user.getVendorProfile() != null
-                    ? user.getVendorProfile().getLogoImage()
-                    : user.getProfileImage();
+                : user.getProfileImage();
 
         return new AuthResponse(user.getId(), user.getName(), user.getEmail(), user.getRole(), user.getStatus(), verified, image, accessToken, refreshToken);
     }
