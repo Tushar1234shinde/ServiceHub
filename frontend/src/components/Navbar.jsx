@@ -9,10 +9,11 @@ export default function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const isPublicHome = !user && location.pathname === "/";
+  const dashboardPath = user?.role === "VENDOR" ? "/vendor" : "/dashboard";
 
   return (
     <header className="topbar">
-      <Link to={user ? "/dashboard" : "/"} className="brand" onClick={() => setMenuOpen(false)}>
+      <Link to={user ? dashboardPath : "/"} className="brand" onClick={() => setMenuOpen(false)}>
         <span className="brand-mark">S</span>
         <span>ServiceHub</span>
       </Link>
@@ -38,7 +39,7 @@ export default function Navbar() {
               </NavLink>
             )}
             {user && (
-              <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+              <NavLink to={dashboardPath} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
                 <LayoutDashboard size={15} /> Dashboard
               </NavLink>
             )}
