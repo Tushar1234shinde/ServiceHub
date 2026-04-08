@@ -33,7 +33,8 @@ public class PaymentController {
     }
 
     @GetMapping("/order/{orderId}")
-    public PaymentResponse getPayment(@PathVariable Long orderId) {
-        return paymentService.getByOrder(orderId);
+    public PaymentResponse getPayment(Authentication authentication, @PathVariable Long orderId) {
+        User user = securityUtils.getCurrentUser(authentication);
+        return paymentService.getByOrder(user, orderId);
     }
 }

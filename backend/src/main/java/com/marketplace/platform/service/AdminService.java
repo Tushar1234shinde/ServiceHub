@@ -2,10 +2,12 @@ package com.marketplace.platform.service;
 
 import com.marketplace.platform.dto.TransactionResponse;
 import com.marketplace.platform.dto.UserResponse;
+import com.marketplace.platform.entity.Role;
 import com.marketplace.platform.entity.TransactionLedger;
 import com.marketplace.platform.entity.User;
 import com.marketplace.platform.entity.UserStatus;
 import com.marketplace.platform.entity.VendorProfile;
+import com.marketplace.platform.exception.BadRequestException;
 import com.marketplace.platform.exception.ResourceNotFoundException;
 import com.marketplace.platform.repository.TransactionLedgerRepository;
 import com.marketplace.platform.repository.UserRepository;
@@ -41,6 +43,9 @@ public class AdminService {
     public UserResponse approveVendor(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getRole() != Role.VENDOR) {
+            throw new BadRequestException("Only vendor accounts can be approved");
+        }
         VendorProfile vendor = vendorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vendor profile not found"));
         vendor.setVerified(true);

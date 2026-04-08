@@ -119,7 +119,11 @@ public class VendorPortalService {
     @Transactional
     public ServiceResponse updateService(User currentUser, Long serviceId, ServiceRequest request) {
         ServiceListing service = requireOwnedService(currentUser, serviceId);
-        applyServiceRequest(service, request);
+        if (request.pricingOptions() != null || request.materialOptions() != null) {
+            throw new BadRequestException("Update pricing and material options through their dedicated vendor endpoints");
+        }
+        applyServiceMetadata(service, request);
+        refreshDisplayPrice(service);
         return toServiceResponse(service);
     }
 
@@ -322,11 +326,7 @@ public class VendorPortalService {
     }
 
     private void applyServiceRequest(ServiceListing listing, ServiceRequest request) {
-        String canonicalCategory = ServiceCategoryCatalog.requireCanonicalCategory(request.category());
-        listing.setTitle(request.title().trim());
-        listing.setDescription(request.description().trim());
-        listing.setCategory(canonicalCategory);
-        listing.setThumbnailImage(trimToNull(request.thumbnailImage()));
+        applyServiceMetadata(listing, request);
 
         List<ServicePricingOption> pricingOptions = buildPricingOptions(listing, request);
         List<ServiceMaterialOption> materialOptions = buildMaterialOptions(listing, request);
@@ -336,6 +336,17 @@ public class VendorPortalService {
         listing.getMaterialOptions().clear();
         listing.getMaterialOptions().addAll(materialOptions);
         refreshDisplayPrice(listing);
+    }
+
+    private void applyServiceMetadata(ServiceListing listing, ServiceRequest request) {
+        String canonicalCategory = ServiceCategoryCatalog.requireCanonicalCategory(request.category());
+        listing.setTitle(request.title().trim());
+        listing.setDescription(request.description().trim());
+        listing.setCategory(canonicalCategory);
+        listing.setThumbnailImage(trimToNull(request.thumbnailImage()));
+        if (listing.getPricingOptions().isEmpty()) {
+            listing.setPrice(request.price());
+        }
     }
 
     private List<ServicePricingOption> buildPricingOptions(ServiceListing listing, ServiceRequest request) {
@@ -417,7 +428,7 @@ public class VendorPortalService {
         BigDecimal displayPrice = service.getPricingOptions().stream()
                 .map(ServicePricingOption::getPrice)
                 .min(Comparator.naturalOrder())
-                .orElse(BigDecimal.ZERO);
+                .orElse(service.getPrice() == null ? BigDecimal.ZERO : service.getPrice());
         service.setPrice(displayPrice);
     }
 

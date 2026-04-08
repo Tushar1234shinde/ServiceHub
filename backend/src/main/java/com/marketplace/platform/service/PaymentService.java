@@ -96,9 +96,19 @@ public class PaymentService {
         return toResponse(payment);
     }
 
-    public PaymentResponse getByOrder(Long orderId) {
+    public PaymentResponse getByOrder(User currentUser, Long orderId) {
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+
+        MarketplaceOrder order = payment.getOrder();
+        boolean isClientOwner = order.getClient().getId().equals(currentUser.getId());
+        boolean isVendorOwner = order.getVendor().getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == Role.ADMIN;
+
+        if (!(isClientOwner || isVendorOwner || isAdmin)) {
+            throw new ResourceNotFoundException("Payment not found");
+        }
+
         return toResponse(payment);
     }
 

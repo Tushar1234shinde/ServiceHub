@@ -6,6 +6,8 @@ Base URL: `http://localhost:8080`
 
 ### `POST /auth/register`
 
+Client example:
+
 ```json
 {
   "name": "Asha Client",
@@ -42,7 +44,7 @@ Vendor example:
 
 ### `GET /marketplace/homepage`
 
-Returns the real homepage aggregate payload:
+Returns:
 - top vendors
 - recent vendor works
 - testimonial reviews
@@ -51,9 +53,17 @@ Returns the real homepage aggregate payload:
 
 ### `GET /services`
 
-Optional query params: `search`, `category`
+Optional query params:
+- `search`
+- `category`
+
+### `GET /services/mine`
+
+Authenticated vendor service list from the older service module.
 
 ### `POST /services`
+
+Creates a service with initial pricing/material options.
 
 ```json
 {
@@ -100,7 +110,9 @@ Returns:
 - published works
 - client reviews
 
-## Vendor Workspace
+## Vendor Public Workspace Features
+
+### `GET /vendors/me/analytics`
 
 ### `GET /vendors/me/works`
 
@@ -122,6 +134,127 @@ Returns:
 
 ### `GET /vendors/me/reviews`
 
+## Vendor Portal API
+
+All endpoints below require an authenticated `VENDOR` user and enforce vendor ownership.
+
+### `GET /api/vendor/dashboard`
+
+Returns:
+- vendor profile summary
+- overview stats
+- recent orders
+
+### `GET /api/vendor/me`
+
+### `PUT /api/vendor/me`
+
+```json
+{
+  "bio": "Painting and surface preparation specialist.",
+  "logoImage": "data:image/png;base64,..."
+}
+```
+
+### `GET /api/vendor/services`
+
+### `GET /api/vendor/services/{id}`
+
+### `POST /api/vendor/services`
+
+Creates a service and its initial options.
+
+### `PUT /api/vendor/services/{id}`
+
+Updates only core service fields. Pricing and material options must be changed through their dedicated endpoints.
+
+```json
+{
+  "title": "Premium wall painting",
+  "description": "Updated copy for the listing.",
+  "price": 180.00,
+  "category": "Painting",
+  "thumbnailImage": "data:image/png;base64,...",
+  "pricingOptions": null,
+  "materialOptions": null
+}
+```
+
+### `DELETE /api/vendor/services/{id}`
+
+### `GET /api/vendor/services/{id}/pricing-options`
+
+### `POST /api/vendor/services/{id}/pricing-options`
+
+### `PUT /api/vendor/pricing-options/{id}`
+
+### `DELETE /api/vendor/pricing-options/{id}`
+
+### `PATCH /api/vendor/pricing-options/reorder`
+
+```json
+{
+  "items": [
+    { "id": 10, "sortOrder": 0 },
+    { "id": 11, "sortOrder": 1 }
+  ]
+}
+```
+
+### `GET /api/vendor/services/{id}/material-options`
+
+### `POST /api/vendor/services/{id}/material-options`
+
+### `PUT /api/vendor/material-options/{id}`
+
+### `PATCH /api/vendor/material-options/{id}/status`
+
+```json
+{
+  "active": true
+}
+```
+
+### `PATCH /api/vendor/material-options/reorder`
+
+### `GET /api/vendor/orders`
+
+Optional query param:
+- `status`
+
+### `GET /api/vendor/orders/{id}`
+
+### `PATCH /api/vendor/orders/{id}/status`
+
+```json
+{
+  "status": "IN_PROGRESS",
+  "statusNote": "Crew assigned and work started."
+}
+```
+
+### `PATCH /api/vendor/orders/{id}/note`
+
+```json
+{
+  "statusNote": "Need one more day for drying and touch-up."
+}
+```
+
+### `PATCH /api/vendor/orders/{id}/work-submission`
+
+```json
+{
+  "workSubmission": "Final coat completed and site cleaned."
+}
+```
+
+### `GET /api/vendor/earnings`
+
+Returns:
+- total earnings
+- completed-order breakdown
+
 ## Orders
 
 ### `POST /orders`
@@ -142,7 +275,16 @@ Returns:
 }
 ```
 
+### `GET /orders`
+
+Returns orders scoped by role:
+- client: own orders
+- vendor: assigned orders
+- admin: all orders
+
 ### `PUT /orders/{id}/status`
+
+Legacy shared order-status endpoint.
 
 ```json
 {
@@ -174,11 +316,17 @@ Vendor decline example:
 
 ### `POST /payments/release`
 
+Admin only.
+
 ```json
 {
   "orderId": 1
 }
 ```
+
+### `GET /payments/order/{orderId}`
+
+Only the client who paid, the assigned vendor, or an admin can view this payment.
 
 ## Reviews
 
@@ -199,6 +347,28 @@ Vendor decline example:
   "comment": "Thank you for the detailed feedback."
 }
 ```
+
+## Saved Services
+
+### `GET /clients/me/saved-services`
+
+### `GET /clients/me/saved-service-ids`
+
+### `POST /clients/me/saved-services/{serviceId}`
+
+### `DELETE /clients/me/saved-services/{serviceId}`
+
+## Admin
+
+### `GET /admin/users`
+
+### `PATCH /admin/vendors/{userId}/approve`
+
+Only vendor accounts can be approved.
+
+### `PATCH /admin/users/{userId}/suspend`
+
+### `GET /admin/transactions`
 
 ## Order State Machine
 

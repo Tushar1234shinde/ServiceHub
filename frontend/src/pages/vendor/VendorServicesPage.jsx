@@ -44,7 +44,7 @@ const emptyMaterial = {
   sortOrder: 0
 };
 
-function servicePayload(service) {
+function createServicePayload(service) {
   return {
     title: service.title,
     description: service.description,
@@ -66,6 +66,18 @@ function servicePayload(service) {
       defaultSelected: Boolean(option.defaultSelected),
       sortOrder: Number(option.sortOrder || 0)
     }))
+  };
+}
+
+function updateServicePayload(service) {
+  return {
+    title: service.title,
+    description: service.description,
+    price: Number(service.price),
+    category: service.category,
+    thumbnailImage: service.thumbnailImage || null,
+    pricingOptions: null,
+    materialOptions: null
   };
 }
 
@@ -149,11 +161,11 @@ export default function VendorServicesPage() {
     try {
       setSaving(true);
       setError("");
-      const payload = servicePayload(selectedService);
+      const payload = isDraft ? createServicePayload(selectedService) : updateServicePayload(selectedService);
       const response = isDraft
         ? await api.createVendorService(payload, token)
         : await api.updateVendorService(selectedService.id, payload, token);
-      setNotice(isDraft ? "Service created." : "Service updated.");
+      setNotice(isDraft ? "Service created." : "Service details updated.");
       await loadServices(response.id);
     } catch (err) {
       setError(err.message);
@@ -332,7 +344,7 @@ export default function VendorServicesPage() {
         <section className="card vendor-panel">
           <div className="section-headline compact-headline">
             <h2>{isDraft ? "Create service" : `Edit service${selectedSummary ? `: ${selectedSummary.title}` : ""}`}</h2>
-            <p>Base service details stay here. Pricing and material rules are managed below.</p>
+            <p>Update core service details here. Pricing and material rules are managed through the dedicated sections below.</p>
           </div>
           {error && <p className="error">{error}</p>}
           {notice && <p className="notice">{notice}</p>}
@@ -343,7 +355,7 @@ export default function VendorServicesPage() {
             <label>Base price<input type="number" min="0" step="0.01" value={selectedService.price} onChange={(event) => setSelectedService((current) => ({ ...current, price: event.target.value }))} /></label>
             <label>Thumbnail image URL or base64<textarea value={selectedService.thumbnailImage || ""} onChange={(event) => setSelectedService((current) => ({ ...current, thumbnailImage: event.target.value }))} /></label>
             <div className="vendor-form-actions">
-              <button className="primary-button" type="submit" disabled={saving}>{saving ? "Saving..." : isDraft ? "Create service" : "Save service"}</button>
+              <button className="primary-button" type="submit" disabled={saving}>{saving ? "Saving..." : isDraft ? "Create service" : "Save details"}</button>
               <button className="ghost-button" type="button" onClick={handleDeleteService}><Trash2 size={16} /> {isDraft ? "Clear draft" : "Delete service"}</button>
             </div>
           </form>
