@@ -31,12 +31,10 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserStatus status;
-
-    @Lob
-    @Column(name = "profile_image")
+    private UserStatus status;    @Column(name = "profile_image", columnDefinition = "TEXT")
     private String profileImage;
 
     @OneToOne(mappedBy = "user")
     private VendorProfile vendorProfile;
 }
+

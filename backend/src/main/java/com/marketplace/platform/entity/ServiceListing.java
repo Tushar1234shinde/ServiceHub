@@ -34,10 +34,7 @@ public class ServiceListing extends BaseEntity {
     private BigDecimal price;
 
     @Column(nullable = false)
-    private String category;
-
-    @Lob
-    @Column(name = "thumbnail_image")
+    private String category;    @Column(name = "thumbnail_image", columnDefinition = "TEXT")
     private String thumbnailImage;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -50,3 +47,4 @@ public class ServiceListing extends BaseEntity {
     @Builder.Default
     private List<ServiceMaterialOption> materialOptions = new ArrayList<>();
 }
+

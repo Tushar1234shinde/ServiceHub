@@ -32,9 +32,7 @@ public class VendorProfile extends BaseEntity {
     private BigDecimal totalEarnings;
 
     @Column(length = 500)
-    private String bio;
-
-    @Lob
-    @Column(name = "logo_image")
+    private String bio;    @Column(name = "logo_image", columnDefinition = "TEXT")
     private String logoImage;
 }
+

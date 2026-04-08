@@ -27,12 +27,10 @@ public class VendorWork extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
-    private String category;
-
-    @Lob
-    @Column(name = "image_data", nullable = false)
+    private String category;    @Column(name = "image_data", nullable = false, columnDefinition = "TEXT")
     private String imageData;
 
     @Column(nullable = false)
     private boolean featured;
 }
+

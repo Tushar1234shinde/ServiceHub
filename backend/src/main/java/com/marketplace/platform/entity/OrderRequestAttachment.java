@@ -18,10 +18,7 @@ public class OrderRequestAttachment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    private MarketplaceOrder order;
-
-    @Lob
-    @Column(name = "image_data", nullable = false)
+    private MarketplaceOrder order;    @Column(name = "image_data", nullable = false, columnDefinition = "TEXT")
     private String imageData;
 
     @Column(length = 255)
@@ -30,3 +27,4 @@ public class OrderRequestAttachment extends BaseEntity {
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
 }
+
