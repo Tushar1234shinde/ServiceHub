@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Briefcase, GalleryHorizontal, Home, Info, LayoutDashboard, Settings } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { getDefaultPathForUser } from "../roleRoutes";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -9,7 +10,7 @@ export default function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const isPublicHome = !user && location.pathname === "/";
-  const dashboardPath = user?.role === "VENDOR" ? "/vendor" : "/dashboard";
+  const dashboardPath = getDefaultPathForUser(user);
 
   return (
     <header className="topbar">

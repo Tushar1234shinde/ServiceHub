@@ -3,7 +3,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/home/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import DashboardPage from "./pages/DashboardPage";
+import ClientDashboardPage from "./pages/ClientDashboardPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import LoginPage from "./pages/LoginPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import RegisterPage from "./pages/RegisterPage";
@@ -14,26 +15,43 @@ import VendorProfileSettingsPage from "./pages/vendor/VendorProfileSettingsPage"
 import VendorServicesPage from "./pages/vendor/VendorServicesPage";
 import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
 import VendorEarningsPage from "./pages/vendor/VendorEarningsPage";
+import { getDefaultPathForUser } from "./roleRoutes";
 
 export default function App() {
   const { user } = useAuth();
   const location = useLocation();
-  const landingPath = user?.role === "VENDOR" ? "/vendor" : user?.role === "CLIENT" ? "/" : "/dashboard";
-  const isVendorWorkspace = location.pathname.startsWith("/vendor");
+  const landingPath = getDefaultPathForUser(user);
+  const isWorkspace = location.pathname.startsWith("/vendor") || location.pathname.startsWith("/admin");
 
   return (
     <div className="app-shell">
-      {!isVendorWorkspace && <Navbar />}
+      {!isWorkspace && <Navbar />}
       <Routes>
         <Route path="/" element={<MarketplacePage />} />
         <Route path="/vendors/:vendorId" element={<VendorProfilePage />} />
         <Route path="/login" element={user ? <Navigate to={landingPath} replace /> : <LoginPage />} />
         <Route path="/register" element={user ? <Navigate to={landingPath} replace /> : <RegisterPage />} />
         <Route
+          path="/client"
+          element={
+            <ProtectedRoute roles={["CLIENT"]}>
+              <ClientDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute roles={["ADMIN"]}>
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              {user?.role === "VENDOR" ? <Navigate to="/vendor" replace /> : <DashboardPage />}
+              <Navigate to={landingPath} replace />
             </ProtectedRoute>
           }
         />
@@ -52,7 +70,7 @@ export default function App() {
           <Route path="earnings" element={<VendorEarningsPage />} />
         </Route>
       </Routes>
-      {!isVendorWorkspace && <Footer />}
+      {!isWorkspace && <Footer />}
     </div>
   );
 }

@@ -58,6 +58,7 @@ export const api = {
   replyToReview: (reviewId, payload, token) => request(`/reviews/${reviewId}/reply`, { method: "POST", body: payload, token }),
   getUsers: (token) => request("/admin/users", { token }),
   approveVendor: (userId, token) => request(`/admin/vendors/${userId}/approve`, { method: "PATCH", token }),
+  suspendUser: (userId, token) => request(`/admin/users/${userId}/suspend`, { method: "PATCH", token }),
   getTransactions: (token) => request("/admin/transactions", { token }),
   getVendorAnalytics: (token) => request("/vendors/me/analytics", { token }),
   getSavedServices: (token) => request("/clients/me/saved-services", { token }),

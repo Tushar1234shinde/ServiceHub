@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
+import { getDefaultPathForRole } from "../roleRoutes";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,15 +12,15 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const redirectTarget = typeof location.state?.from === "string" ? location.state.from : "/";
+  const redirectTarget = typeof location.state?.from === "string" ? location.state.from : "";
 
   async function handleSubmit(event) {
     event.preventDefault();
     try {
       setError("");
       setLoading(true);
-      await login(form);
-      navigate(redirectTarget, { replace: true });
+      const session = await login(form);
+      navigate(redirectTarget || getDefaultPathForRole(session?.user?.role), { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

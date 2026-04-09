@@ -10,6 +10,7 @@ import Testimonials from "../components/home/Testimonials";
 import VendorCarousel from "../components/home/VendorCarousel";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
+import { getDefaultPathForUser } from "../roleRoutes";
 
 const categoryOptions = [
   "",
@@ -264,6 +265,8 @@ export default function MarketplacePage() {
     return (base + materials).toFixed(2);
   }, [selectedMaterialOptions, selectedPricingOption, selectedService]);
 
+  const workspacePath = getDefaultPathForUser(user);
+
   function navigateToLogin(returnPath) {
     navigate("/login", { state: { from: returnPath } });
   }
@@ -421,7 +424,7 @@ export default function MarketplacePage() {
         vendorsCount={vendorCount}
         savedCount={savedServiceIds.length}
         onFindVendors={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-        onBecomeVendor={() => navigate(user ? "/dashboard" : "/register")}
+        onBecomeVendor={() => navigate(user ? workspacePath : "/register")}
       />
 
       <section className="page section-block feature-block">
@@ -607,8 +610,9 @@ export default function MarketplacePage() {
 
       <CallToAction
         onExplore={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
-        onJoin={() => navigate(user ? "/dashboard" : "/register")}
+        onJoin={() => navigate(user ? workspacePath : "/register")}
       />
     </main>
   );
 }
+

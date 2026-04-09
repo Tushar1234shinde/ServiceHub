@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(session?.accessToken),
       async login(payload) {
         const response = await api.login(payload);
-        setSession({
+        const nextSession = {
           user: {
             id: response.userId,
             name: response.name,
@@ -48,11 +48,13 @@ export function AuthProvider({ children }) {
           },
           accessToken: response.accessToken,
           refreshToken: response.refreshToken
-        });
+        };
+        setSession(nextSession);
+        return nextSession;
       },
       async register(payload) {
         const response = await api.register(payload);
-        setSession({
+        const nextSession = {
           user: {
             id: response.userId,
             name: response.name,
@@ -64,7 +66,9 @@ export function AuthProvider({ children }) {
           },
           accessToken: response.accessToken,
           refreshToken: response.refreshToken
-        });
+        };
+        setSession(nextSession);
+        return nextSession;
       },
       logout() {
         setSession(null);

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
+import { getDefaultPathForRole } from "../roleRoutes";
 
 const ROLE_DETAILS = {
   CLIENT: {
@@ -102,9 +103,7 @@ export default function RegisterPage() {
       });
       const redirectTarget = typeof location.state?.from === "string"
         ? location.state.from
-        : form.role === "CLIENT"
-          ? "/"
-          : "/dashboard";
+        : getDefaultPathForRole(form.role);
       navigate(redirectTarget, { replace: true });
     } catch (err) {
       setError(err.message);
