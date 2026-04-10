@@ -16,6 +16,23 @@
   --danger: #b6383e;
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111821;
+  --panel: #182331;
+  --line: #314054;
+  --ink: #eef4fb;
+  --muted: #aeb9c8;
+  --primary: #45a4e8;
+  --primary-dark: #9bd0ff;
+  --secondary: #36c0b8;
+  --accent: #ff8d64;
+  --accent-dark: #ffc0a7;
+  --accent-soft: #3d2b28;
+  --success: #59d2a4;
+  --danger: #ff858b;
+}
+
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -102,6 +119,18 @@ button, input, textarea, select { font: inherit; }
   color: var(--muted);
   font-size: 0.82rem;
   padding: 0.43rem 0.75rem;
+}
+
+.theme-toggle {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.52rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
 }
 
 .page { width: min(1140px, calc(100% - 2rem)); margin: 0 auto; }
@@ -2598,11 +2627,268 @@ textarea { min-height: 120px; resize: vertical; }
   color: #9a6700;
 }
 
+.gallery-page {
+  padding: 2.2rem 0 4rem;
+}
+
+.gallery-hero,
+.services-hero,
+.about-hero {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.gallery-hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.gallery-hero h1,
+.services-hero h1,
+.about-hero h1 {
+  margin: 0.45rem 0 0.65rem;
+  max-width: 14ch;
+  font-size: clamp(2.1rem, 4.8vw, 4rem);
+  line-height: 0.98;
+}
+
+.gallery-hero p,
+.services-hero p,
+.about-hero p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+.gallery-feed {
+  width: min(760px, calc(100% - 2rem));
+  margin: 0 auto;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.gallery-reel-card {
+  min-height: 82vh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 27, 47, 0.16);
+  background: #101820;
+  color: #f8fbff;
+  box-shadow: 0 24px 60px rgba(16, 27, 47, 0.18);
+}
+
+.gallery-reel-image {
+  width: 100%;
+  height: 100%;
+  min-height: 34rem;
+  object-fit: cover;
+}
+
+.gallery-reel-copy {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(16, 24, 32, 0.86), rgba(16, 24, 32, 0.98));
+}
+
+.gallery-reel-copy h2,
+.chat-panel h2,
+.about-grid h2 {
+  margin: 0;
+}
+
+.gallery-reel-copy p {
+  margin: 0;
+  color: rgba(248, 251, 255, 0.82);
+}
+
+.gallery-reel-meta,
+.gallery-reel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.gallery-reel-meta span,
+.gallery-reel-footer span,
+.gallery-reel-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #dbeafe;
+  font-size: 0.86rem;
+}
+
+.services-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.about-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+}
+
+.about-hero img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 20px 48px rgba(16, 27, 47, 0.14);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.chat-shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.chat-list,
+.chat-panel {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.chat-thread {
+  border: 1px solid rgba(16, 27, 47, 0.1);
+  border-radius: 8px;
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.3rem;
+  text-align: left;
+  background: #f8fbff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.chat-thread.active {
+  border-color: #0f4a8a;
+  background: #eaf3ff;
+}
+
+.chat-thread span,
+.chat-thread p,
+.chat-panel-head p,
+.chat-message span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.chat-message-list {
+  min-height: 24rem;
+  max-height: 56vh;
+  overflow: auto;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: #f2f6fb;
+}
+
+.chat-message {
+  width: min(82%, 34rem);
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(16, 27, 47, 0.08);
+}
+
+.chat-message.mine {
+  justify-self: end;
+  background: #e8f7f5;
+  border-color: #bce7df;
+}
+
+.chat-message p {
+  margin: 0;
+}
+
+.chat-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.chat-compose textarea {
+  min-height: 4.5rem;
+}
+
+.vendor-gallery-thumb {
+  width: min(260px, 100%);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .vendor-shell,
+:root[data-theme="dark"] .admin-shell {
+  background: linear-gradient(180deg, #111821 0%, #0c1219 100%);
+}
+
+:root[data-theme="dark"] .topbar,
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .workspace-panel,
+:root[data-theme="dark"] .workspace-stat-card,
+:root[data-theme="dark"] .client-hero-copy,
+:root[data-theme="dark"] .service-card,
+:root[data-theme="dark"] .vendor-hero-card,
+:root[data-theme="dark"] .vendor-stat-card,
+:root[data-theme="dark"] .chat-message,
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .nav-link:hover,
+:root[data-theme="dark"] .nav-link.active,
+:root[data-theme="dark"] .chat-thread.active {
+  background: #24354a;
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] .chat-thread,
+:root[data-theme="dark"] .chat-message-list,
+:root[data-theme="dark"] .vendor-list-row,
+:root[data-theme="dark"] .vendor-service-list-item,
+:root[data-theme="dark"] .booking-option-card,
+:root[data-theme="dark"] .booking-checkbox-row {
+  background: #14202d;
+  color: var(--ink);
+  border-color: #314054;
+}
+
+:root[data-theme="dark"] .chat-message.mine,
+:root[data-theme="dark"] .booking-total-row {
+  background: #163b3b;
+}
+
 @media (max-width: 1100px) {
   .client-hero,
   .client-content-grid,
   .admin-panel-hero,
-  .admin-dual-grid {
+  .admin-dual-grid,
+  .about-hero,
+  .about-grid,
+  .chat-shell {
     grid-template-columns: 1fr;
   }
 }
@@ -2627,7 +2913,9 @@ textarea { min-height: 120px; resize: vertical; }
   .saved-service-card,
   .admin-mini-row,
   .admin-action-card,
-  .admin-order-top {
+  .admin-order-top,
+  .gallery-hero,
+  .chat-compose {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: flex-start;
@@ -2635,5 +2923,13 @@ textarea { min-height: 120px; resize: vertical; }
 
   .workspace-panel-head {
     flex-direction: column;
+  }
+
+  .gallery-reel-card {
+    min-height: auto;
+  }
+
+  .gallery-reel-image {
+    min-height: 22rem;
   }
 }

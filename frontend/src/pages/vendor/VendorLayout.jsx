@@ -1,11 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { BarChart3, BriefcaseBusiness, CircleUserRound, DollarSign, LayoutDashboard, LogOut, PackageCheck } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, CircleUserRound, DollarSign, GalleryHorizontal, LayoutDashboard, LogOut, MessageCircle, PackageCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const links = [
   { to: "/vendor", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/vendor/profile", label: "My Profile", icon: CircleUserRound },
   { to: "/vendor/services", label: "My Services", icon: BriefcaseBusiness },
+  { to: "/vendor/gallery", label: "Gallery Posts", icon: GalleryHorizontal },
+  { to: "/vendor/chat", label: "Chat Inbox", icon: MessageCircle },
   { to: "/vendor/orders", label: "Orders", icon: PackageCheck },
   { to: "/vendor/earnings", label: "Earnings", icon: DollarSign }
 ];

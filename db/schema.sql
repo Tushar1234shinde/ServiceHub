@@ -184,6 +184,9 @@ CREATE TABLE conversations (
     client_id BIGINT NOT NULL REFERENCES users(id),
     vendor_id BIGINT NOT NULL REFERENCES vendors(id),
     status VARCHAR(50) NOT NULL DEFAULT 'OPEN',
+    service_id BIGINT,
+    gallery_work_id BIGINT,
+    subject VARCHAR(500),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

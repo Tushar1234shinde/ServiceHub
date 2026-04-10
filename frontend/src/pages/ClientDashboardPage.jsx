@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, CheckCircle2, Heart, Package, Search, Sparkles, Star } from "lucide-react";
+import { CalendarClock, CheckCircle2, Heart, MessageCircle, Package, Search, Sparkles, Star } from "lucide-react";
 import OrderCard from "../components/OrderCard";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
@@ -81,8 +81,11 @@ export default function ClientDashboardPage() {
             Track live service orders, revisit saved vendors, and jump back into the marketplace without the old shared dashboard clutter.
           </p>
           <div className="client-hero-actions">
-            <Link className="primary-button" to="/#services">
+            <Link className="primary-button" to="/services">
               <Search size={16} /> Explore services
+            </Link>
+            <Link className="ghost-button" to="/client/chat">
+              <MessageCircle size={16} /> Chat inbox
             </Link>
             <button className="ghost-button" onClick={logout}>Sign out</button>
           </div>
@@ -143,7 +146,7 @@ export default function ClientDashboardPage() {
                 <span className="workspace-kicker">Orders</span>
                 <h2>My bookings</h2>
               </div>
-              <Link className="workspace-link" to="/#services">Book another service</Link>
+              <Link className="workspace-link" to="/services">Book another service</Link>
             </div>
 
             <div className="workspace-stack">
@@ -190,7 +193,7 @@ export default function ClientDashboardPage() {
             <span className="workspace-kicker">Next step</span>
             <h2>Need a new service?</h2>
             <p>Browse live listings, customize pricing and materials, then fund escrow when you are ready.</p>
-            <Link className="primary-button" to="/#services">
+            <Link className="primary-button" to="/services">
               <Search size={16} /> Open marketplace
             </Link>
           </section>

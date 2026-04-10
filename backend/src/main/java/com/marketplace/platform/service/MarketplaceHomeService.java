@@ -111,6 +111,13 @@ public class MarketplaceHomeService {
         return new MarketplaceHomeResponse(topVendors, recentWorks, testimonials);
     }
 
+    @Transactional(readOnly = true)
+    public List<VendorWorkResponse> getGalleryWorks() {
+        return vendorWorkRepository.findAllWithVendorAndUserOrderByCreatedAtDesc().stream()
+                .map(this::toWorkResponse)
+                .toList();
+    }
+
     private VendorWorkResponse toWorkResponse(VendorWork work) {
         return new VendorWorkResponse(
                 work.getId(),

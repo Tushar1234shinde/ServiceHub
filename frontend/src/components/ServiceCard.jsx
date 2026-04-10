@@ -1,4 +1,4 @@
-import { BadgeCheck, Star } from "lucide-react";
+ï»¿import { BadgeCheck, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function ServiceCard({
@@ -9,7 +9,10 @@ export default function ServiceCard({
   bookingInProgress,
   onSaveAction,
   isSaved,
-  saveInProgress
+  saveInProgress,
+  onChatAction,
+  chatLabel = "Chat with Vendor",
+  chatDisabled
 }) {
   const pricingCount = service.pricingOptions?.length || 0;
   const materialCount = service.materialOptions?.length || 0;
@@ -46,7 +49,7 @@ export default function ServiceCard({
       {(pricingCount > 1 || materialCount > 0) && (
         <p className="quote-note">
           {pricingCount > 1 ? `${pricingCount} pricing options` : "Single pricing option"}
-          {materialCount > 0 ? ` • ${materialCount} material add-ons` : ""}
+          {materialCount > 0 ? ` - ${materialCount} material add-ons` : ""}
         </p>
       )}
       <div className="service-actions">
@@ -58,6 +61,11 @@ export default function ServiceCard({
         {onSaveAction && (
           <button className="ghost-button" onClick={() => onSaveAction(service)} disabled={saveInProgress}>
             {saveInProgress ? "Updating..." : isSaved ? "Saved" : "Save"}
+          </button>
+        )}
+        {onChatAction && (
+          <button className="ghost-button" onClick={() => onChatAction(service)} disabled={chatDisabled}>
+            {chatLabel}
           </button>
         )}
       </div>

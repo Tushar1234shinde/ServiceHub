@@ -9,12 +9,17 @@ import LoginPage from "./pages/LoginPage";
 import MarketplacePage from "./pages/MarketplacePage";
 import RegisterPage from "./pages/RegisterPage";
 import VendorProfilePage from "./pages/VendorProfilePage";
+import AboutPage from "./pages/AboutPage";
+import ChatPage from "./pages/ChatPage";
+import GalleryPage from "./pages/GalleryPage";
+import ServicesPage from "./pages/ServicesPage";
 import VendorLayout from "./pages/vendor/VendorLayout";
 import VendorOverviewPage from "./pages/vendor/VendorOverviewPage";
 import VendorProfileSettingsPage from "./pages/vendor/VendorProfileSettingsPage";
 import VendorServicesPage from "./pages/vendor/VendorServicesPage";
 import VendorOrdersPage from "./pages/vendor/VendorOrdersPage";
 import VendorEarningsPage from "./pages/vendor/VendorEarningsPage";
+import VendorGalleryPage from "./pages/vendor/VendorGalleryPage";
 import { getDefaultPathForUser } from "./roleRoutes";
 
 export default function App() {
@@ -28,6 +33,9 @@ export default function App() {
       {!isWorkspace && <Navbar />}
       <Routes>
         <Route path="/" element={<MarketplacePage />} />
+        <Route path="/gallery" element={<GalleryPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/vendors/:vendorId" element={<VendorProfilePage />} />
         <Route path="/login" element={user ? <Navigate to={landingPath} replace /> : <LoginPage />} />
         <Route path="/register" element={user ? <Navigate to={landingPath} replace /> : <RegisterPage />} />
@@ -36,6 +44,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={["CLIENT"]}>
               <ClientDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client/chat"
+          element={
+            <ProtectedRoute roles={["CLIENT"]}>
+              <ChatPage workspace="client" />
             </ProtectedRoute>
           }
         />
@@ -66,6 +82,8 @@ export default function App() {
           <Route index element={<VendorOverviewPage />} />
           <Route path="profile" element={<VendorProfileSettingsPage />} />
           <Route path="services" element={<VendorServicesPage />} />
+          <Route path="gallery" element={<VendorGalleryPage />} />
+          <Route path="chat" element={<ChatPage workspace="vendor" />} />
           <Route path="orders" element={<VendorOrdersPage />} />
           <Route path="earnings" element={<VendorEarningsPage />} />
         </Route>
