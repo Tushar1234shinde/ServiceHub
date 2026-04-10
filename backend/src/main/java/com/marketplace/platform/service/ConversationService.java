@@ -91,6 +91,7 @@ public class ConversationService {
                 .body(body.trim())
                 .containsBlockedContact(false)
                 .build()));
+        conversation.touch();
     }
 
     private void requireClientOrVendor(User currentUser) {
