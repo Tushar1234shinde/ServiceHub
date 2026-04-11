@@ -6,6 +6,7 @@ import com.marketplace.platform.exception.BadRequestException;
 import com.marketplace.platform.exception.ResourceNotFoundException;
 import com.marketplace.platform.repository.OrderRepository;
 import com.marketplace.platform.repository.PaymentRepository;
+import com.marketplace.platform.repository.ReviewRepository;
 import com.marketplace.platform.repository.ServiceListingRepository;
 import com.marketplace.platform.repository.TransactionLedgerRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class OrderService {
     private final ServiceListingRepository serviceListingRepository;
     private final PaymentRepository paymentRepository;
     private final TransactionLedgerRepository transactionLedgerRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public OrderResponse createOrder(User client, OrderCreateRequest request) {
@@ -245,6 +247,8 @@ public class OrderService {
                 ))
                 .toList();
 
+        Review review = reviewRepository.findByOrderId(order.getId()).orElse(null);
+
         return new OrderResponse(
                 order.getId(),
                 order.getClient().getId(),
@@ -261,6 +265,8 @@ public class OrderService {
                 order.isMaterialIncluded(),
                 order.getClientNote(),
                 order.getStatusNote(),
+                review != null,
+                review == null ? null : review.getId(),
                 selectedMaterialOptions,
                 attachments,
                 order.getCreatedAt().toString()

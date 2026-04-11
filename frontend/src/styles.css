@@ -611,7 +611,10 @@ textarea { min-height: 120px; resize: vertical; }
 .status-chip.submitted,
 .status-chip.approved,
 .status-chip.completed { background: #e6f4ee; color: #176245; }
+.status-chip.reviewed,
+.status-chip.resolved { background: #e8f0ff; color: #214a9a; }
 .status-chip.dispute,
+.status-chip.rejected,
 .status-chip.cancelled { background: #fde9ea; color: #8b2e31; }
 .submission-note { background: #eef5ff; border-radius: 10px; padding: 0.6rem; }
 .auth-page {

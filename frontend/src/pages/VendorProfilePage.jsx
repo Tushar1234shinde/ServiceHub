@@ -143,10 +143,10 @@ export default function VendorProfilePage() {
                       <img src={clientAvatar(review)} alt={review.clientName} className="testimonial-avatar" />
                       <div>
                         <h4>{review.clientName}</h4>
-                        <span>{"?".repeat(review.rating)}</span>
+                        <span>Rating: {review.rating}/5</span>
                       </div>
                     </div>
-                    <p>{review.comment}</p>
+                    <p>{review.comment || "No written feedback provided."}</p>
                     {review.reply && (
                       <div className="review-reply-card">
                         <strong>Vendor reply</strong>

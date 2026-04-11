@@ -21,6 +21,8 @@ public record OrderResponse(
         boolean materialIncluded,
         String clientNote,
         String statusNote,
+        boolean reviewSubmitted,
+        Long reviewId,
         List<OrderMaterialSelectionResponse> selectedMaterialOptions,
         List<OrderAttachmentResponse> attachments,
         String createdAt

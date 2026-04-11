@@ -248,6 +248,10 @@ function ClientOrderActions({ order, token, setError, setNotice, onRefresh }) {
   }
 
   if (order.status === "APPROVED" || order.status === "COMPLETED") {
+    if (order.reviewSubmitted) {
+      return <span className="status-chip completed">Review submitted</span>;
+    }
+
     if (showReview) {
       return (
         <div className="review-box card">
@@ -258,10 +262,16 @@ function ClientOrderActions({ order, token, setError, setNotice, onRefresh }) {
             <option value="2">2 Stars</option>
             <option value="1">1 Star</option>
           </select>
-          <textarea placeholder="Your feedback..." value={comment} onChange={(event) => setComment(event.target.value)} />
-          <button className="primary-button small" onClick={submitReview} disabled={submitting}>
-            {submitting ? "Saving..." : "Submit review"}
-          </button>
+          <textarea placeholder="Optional written feedback..." value={comment} onChange={(event) => setComment(event.target.value)} />
+          <div className="vendor-inline-actions">
+            <button className="primary-button small" onClick={submitReview} disabled={submitting}>
+              {submitting ? "Saving..." : "Submit review"}
+            </button>
+            <button className="ghost-button small" type="button" onClick={() => setShowReview(false)} disabled={submitting}>
+              Cancel
+            </button>
+          </div>
+          <p className="subtle">You can rate only completed or approved orders that belong to you.</p>
         </div>
       );
     }

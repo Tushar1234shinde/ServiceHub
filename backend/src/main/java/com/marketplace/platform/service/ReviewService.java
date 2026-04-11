@@ -45,7 +45,7 @@ public class ReviewService {
         Review review = reviewRepository.save(Review.builder()
                 .order(order)
                 .rating(request.rating())
-                .comment(request.comment().trim())
+                .comment(trimToEmpty(request.comment()))
                 .build());
 
         refreshVendorRating(order.getVendor());
@@ -55,6 +55,13 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<ReviewResponse> getReviews(Long vendorId) {
         return reviewRepository.findAllByVendorIdWithAssociations(vendorId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> getAllReviews() {
+        return reviewRepository.findAllWithAssociations().stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -136,5 +143,12 @@ public class ReviewService {
                 review.getCreatedAt().toString(),
                 replyResponse
         );
+    }
+
+    private String trimToEmpty(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim();
     }
 }

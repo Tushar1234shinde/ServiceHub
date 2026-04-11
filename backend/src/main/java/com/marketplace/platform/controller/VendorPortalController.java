@@ -7,6 +7,8 @@ import com.marketplace.platform.dto.ServicePricingOptionRequest;
 import com.marketplace.platform.dto.ServicePricingOptionResponse;
 import com.marketplace.platform.dto.ServiceRequest;
 import com.marketplace.platform.dto.ServiceResponse;
+import com.marketplace.platform.dto.VendorClientReportRequest;
+import com.marketplace.platform.dto.VendorClientReportResponse;
 import com.marketplace.platform.dto.vendor.VendorDashboardResponse;
 import com.marketplace.platform.dto.vendor.VendorEarningsResponse;
 import com.marketplace.platform.dto.vendor.VendorOrderNoteUpdateRequest;
@@ -19,6 +21,7 @@ import com.marketplace.platform.entity.User;
 import com.marketplace.platform.exception.BadRequestException;
 import com.marketplace.platform.service.SecurityUtils;
 import com.marketplace.platform.service.VendorPortalService;
+import com.marketplace.platform.service.VendorReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +39,7 @@ import java.util.Map;
 public class VendorPortalController {
 
     private final VendorPortalService vendorPortalService;
+    private final VendorReportService vendorReportService;
     private final SecurityUtils securityUtils;
 
     @GetMapping("/dashboard")
@@ -184,6 +188,17 @@ public class VendorPortalController {
     @GetMapping("/earnings")
     public VendorEarningsResponse getEarnings(Authentication authentication) {
         return vendorPortalService.getEarnings(currentUser(authentication));
+    }
+
+    @GetMapping("/reports")
+    public List<VendorClientReportResponse> getReports(Authentication authentication) {
+        return vendorReportService.getVendorReports(currentUser(authentication));
+    }
+
+    @PostMapping("/reports")
+    public VendorClientReportResponse createReport(Authentication authentication,
+                                                   @Valid @RequestBody VendorClientReportRequest request) {
+        return vendorReportService.createReport(currentUser(authentication), request);
     }
 
     private User currentUser(Authentication authentication) {

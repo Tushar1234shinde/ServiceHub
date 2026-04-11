@@ -30,6 +30,7 @@ import com.marketplace.platform.entity.VendorProfile;
 import com.marketplace.platform.exception.BadRequestException;
 import com.marketplace.platform.exception.ResourceNotFoundException;
 import com.marketplace.platform.repository.OrderRepository;
+import com.marketplace.platform.repository.ReviewRepository;
 import com.marketplace.platform.repository.ServiceListingRepository;
 import com.marketplace.platform.repository.ServiceMaterialOptionRepository;
 import com.marketplace.platform.repository.ServicePricingOptionRepository;
@@ -51,6 +52,7 @@ public class VendorPortalService {
     private final ServicePricingOptionRepository servicePricingOptionRepository;
     private final ServiceMaterialOptionRepository serviceMaterialOptionRepository;
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional(readOnly = true)
     public VendorDashboardResponse getDashboard(User currentUser) {
@@ -545,6 +547,8 @@ public class VendorPortalService {
                 ))
                 .toList();
 
+        com.marketplace.platform.entity.Review review = reviewRepository.findByOrderId(order.getId()).orElse(null);
+
         return new OrderResponse(
                 order.getId(),
                 order.getClient().getId(),
@@ -561,6 +565,8 @@ public class VendorPortalService {
                 order.isMaterialIncluded(),
                 order.getClientNote(),
                 order.getStatusNote(),
+                review != null,
+                review == null ? null : review.getId(),
                 selectedMaterialOptions,
                 attachments,
                 order.getCreatedAt().toString()
