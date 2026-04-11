@@ -177,11 +177,11 @@ export default function HeroScene() {
       pointer.y = 0;
     };
 
-    const clock = new THREE.Clock();
+    const startedAt = performance.now();
 
     const animate = () => {
       frameId = window.requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      const elapsed = (performance.now() - startedAt) / 1000;
       const motion = reduceMotion ? 0.18 : 1;
 
       coreMesh.rotation.x = elapsed * 0.32 * motion;

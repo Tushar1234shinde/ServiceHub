@@ -468,7 +468,7 @@ export default function AuthScene({ mode = "signin" }) {
     };
 
     const removeMotionListener = addMediaQueryListener(motionQuery, handleMotionChange);
-    const clock = new THREE.Clock();
+    const startedAt = performance.now();
 
     const animate = () => {
       if (isDisposed) {
@@ -476,7 +476,7 @@ export default function AuthScene({ mode = "signin" }) {
       }
 
       frameId = window.requestAnimationFrame(animate);
-      const elapsed = clock.getElapsedTime();
+      const elapsed = (performance.now() - startedAt) / 1000;
       const motion = reduceMotion ? 0.16 : 1;
       const pulseProgress = (elapsed * (mode === "signup" ? 0.14 : 0.18)) % 1;
       const pulsePoint = routeCurve.getPointAt(pulseProgress);

@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Briefcase, GalleryHorizontal, Home, Info, LayoutDashboard, Settings } from "lucide-react";
+import { Briefcase, GalleryHorizontal, Home, Info, LayoutDashboard, Moon, Sun } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { getDefaultPathForUser } from "../roleRoutes";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const isPublicHome = !user && location.pathname === "/";
   const dashboardPath = getDefaultPathForUser(user);
 
   return (
@@ -24,31 +25,30 @@ export default function Navbar() {
       </button>
 
       <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-        {isPublicHome ? (
-          <>
-            <a href="#home" className="nav-link" onClick={() => setMenuOpen(false)}><Home size={15} /> Home</a>
-            <a href="#gallery" className="nav-link" onClick={() => setMenuOpen(false)}><GalleryHorizontal size={15} /> Gallery</a>
-            <a href="#services" className="nav-link" onClick={() => setMenuOpen(false)}><Briefcase size={15} /> Services</a>
-            <a href="#about" className="nav-link" onClick={() => setMenuOpen(false)}><Info size={15} /> About Us</a>
-            <a href="#settings" className="nav-link" onClick={() => setMenuOpen(false)}><Settings size={15} /> Settings</a>
-          </>
-        ) : (
-          <>
-            {!user && (
-              <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
-                <Home size={15} /> Home
-              </NavLink>
-            )}
-            {user && (
-              <NavLink to={dashboardPath} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
-                <LayoutDashboard size={15} /> Dashboard
-              </NavLink>
-            )}
-          </>
+        <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+          <Home size={15} /> Home
+        </NavLink>
+        <NavLink to="/gallery" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+          <GalleryHorizontal size={15} /> Gallery
+        </NavLink>
+        <NavLink to="/services" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+          <Briefcase size={15} /> Services
+        </NavLink>
+        <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+          <Info size={15} /> About Us
+        </NavLink>
+        {user && (
+          <NavLink to={dashboardPath} className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`} onClick={() => setMenuOpen(false)}>
+            <LayoutDashboard size={15} /> Dashboard
+          </NavLink>
         )}
       </nav>
 
       <div className="topbar-meta">
+        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle light and dark theme">
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          <span>{theme === "dark" ? "Light" : "Dark"}</span>
+        </button>
         {user ? (
           <>
             <span className="user-chip">{user.role} | {user.name}</span>
