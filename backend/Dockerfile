@@ -10,7 +10,7 @@ RUN mvn clean package -DskipTests
 # Run stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Performance optimizations for free tier (limiting RAM)
 ENV JAVA_OPTS="-XX:+UseSerialGC -Xss512k -XX:MaxRAMPercentage=75.0"
