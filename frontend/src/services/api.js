@@ -98,5 +98,36 @@ export const api = {
   getConversations: (token) => request("/conversations", { token }),
   getConversation: (conversationId, token) => request(`/conversations/${conversationId}`, { token }),
   startConversation: (payload, token) => request("/conversations", { method: "POST", body: payload, token }),
-  sendConversationMessage: (conversationId, payload, token) => request(`/conversations/${conversationId}/messages`, { method: "POST", body: payload, token })
+  sendConversationMessage: (conversationId, payload, token) => request(`/conversations/${conversationId}/messages`, { method: "POST", body: payload, token }),
+
+  uploadImage: async (file) => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    if (!cloudName || !uploadPreset) {
+      console.warn("Cloudinary configuration missing. Returning null to fallback to Base64.");
+      return null;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error("Image upload to cloud failed");
+      }
+
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Cloudinary upload error:", error);
+      return null;
+    }
+  }
 };

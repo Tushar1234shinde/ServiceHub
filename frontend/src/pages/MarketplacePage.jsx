@@ -309,15 +309,26 @@ export default function MarketplacePage() {
     }
 
     try {
+      setSubmittingBooking(true);
+      setError("");
+      
       const attachments = await Promise.all(
-        files.map(async (file, index) => ({
-          imageData: await readFileAsDataUrl(file),
-          caption: `Reference image ${index + 1}`
-        }))
+        files.map(async (file, index) => {
+          // 1. Get local preview
+          const localPreview = await readFileAsDataUrl(file);
+          // 2. Upload to Cloudinary
+          const cloudUrl = await api.uploadImage(file);
+          return {
+            imageData: cloudUrl || localPreview,
+            caption: `Reference image ${index + 1}`
+          };
+        })
       );
       setBookingForm((current) => ({ ...current, attachments }));
     } catch (err) {
       setError(err.message);
+    } finally {
+      setSubmittingBooking(false);
     }
   }
 

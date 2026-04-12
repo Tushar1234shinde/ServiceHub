@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthScene from "../components/AuthScene";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../services/api";
 import { getDefaultPathForRole } from "../roleRoutes";
 
 const ROLE_DETAILS = {
@@ -48,7 +49,7 @@ export default function RegisterPage() {
   const [uploading, setUploading] = useState(false);
 
   const roleInfo = ROLE_DETAILS[form.role];
-  const previewImage = form.role === "VENDOR" ? form.logoImage : form.profileImage;
+  const [previewImage, setPreviewImage] = useState("");
 
   async function handleImageChange(event) {
     const file = event.target.files?.[0];
@@ -65,11 +66,19 @@ export default function RegisterPage() {
     try {
       setError("");
       setUploading(true);
+      
+      // 1. Show local preview immediately
       const imageData = await readFileAsDataUrl(file);
+      setPreviewImage(imageData);
+
+      // 2. Upload to Cloudinary
+      const cloudUrl = await api.uploadImage(file);
+      
+      // 3. Update form with results
       setForm((current) => ({
         ...current,
-        profileImage: current.role === "CLIENT" ? imageData : "",
-        logoImage: current.role === "VENDOR" ? imageData : ""
+        profileImage: current.role === "CLIENT" ? (cloudUrl || imageData) : "",
+        logoImage: current.role === "VENDOR" ? (cloudUrl || imageData) : ""
       }));
     } catch (err) {
       setError(err.message);
@@ -199,7 +208,10 @@ export default function RegisterPage() {
               <button
                 type="button"
                 className="ghost-button upload-remove-button"
-                onClick={() => setForm((current) => ({ ...current, profileImage: "", logoImage: "" }))}
+                onClick={() => {
+                  setForm((current) => ({ ...current, profileImage: "", logoImage: "" }));
+                  setPreviewImage("");
+                }}
               >
                 Remove image
               </button>
