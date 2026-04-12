@@ -16,8 +16,6 @@ public interface OrderRepository extends JpaRepository<MarketplaceOrder, Long> {
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
-            left join fetch o.attachments
-            left join fetch o.selectedMaterialOptions
             where c.id = :clientId
             order by o.createdAt desc
             """)
@@ -30,8 +28,6 @@ public interface OrderRepository extends JpaRepository<MarketplaceOrder, Long> {
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
-            left join fetch o.attachments
-            left join fetch o.selectedMaterialOptions
             where v.user.id = :vendorUserId
             order by o.createdAt desc
             """)
@@ -46,8 +42,6 @@ public interface OrderRepository extends JpaRepository<MarketplaceOrder, Long> {
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
-            left join fetch o.attachments
-            left join fetch o.selectedMaterialOptions
             order by o.createdAt desc
             """)
     List<MarketplaceOrder> findAllDetailed();
@@ -59,8 +53,6 @@ public interface OrderRepository extends JpaRepository<MarketplaceOrder, Long> {
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
-            left join fetch o.attachments
-            left join fetch o.selectedMaterialOptions
             where o.id = :orderId and v.user.id = :userId
             """)
     Optional<MarketplaceOrder> findDetailedByIdAndVendorUserId(@Param("orderId") Long orderId, @Param("userId") Long userId);
