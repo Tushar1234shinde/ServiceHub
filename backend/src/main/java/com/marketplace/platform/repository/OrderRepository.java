@@ -9,31 +9,58 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<MarketplaceOrder, Long> {
-    List<MarketplaceOrder> findByClientId(Long clientId);
+    @Query("""
+            select distinct o from MarketplaceOrder o
+            join fetch o.client c
+            join fetch o.vendor v
+            join fetch v.user
+            join fetch o.service s
+            left join fetch o.pricingOption
+            left join fetch o.attachments
+            left join fetch o.selectedMaterialOptions
+            where c.id = :clientId
+            order by o.createdAt desc
+            """)
+    List<MarketplaceOrder> findDetailedByClientId(@Param("clientId") Long clientId);
 
-    List<MarketplaceOrder> findByVendorUserId(Long vendorUserId);
+    @Query("""
+            select distinct o from MarketplaceOrder o
+            join fetch o.client c
+            join fetch o.vendor v
+            join fetch v.user
+            join fetch o.service s
+            left join fetch o.pricingOption
+            left join fetch o.attachments
+            left join fetch o.selectedMaterialOptions
+            where v.user.id = :vendorUserId
+            order by o.createdAt desc
+            """)
+    List<MarketplaceOrder> findDetailedByVendorUserId(@Param("vendorUserId") Long vendorUserId);
 
     List<MarketplaceOrder> findByVendorId(Long vendorId);
 
     @Query("""
-            select o from MarketplaceOrder o
+            select distinct o from MarketplaceOrder o
             join fetch o.client c
             join fetch o.vendor v
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
-            where v.user.id = :userId
+            left join fetch o.attachments
+            left join fetch o.selectedMaterialOptions
             order by o.createdAt desc
             """)
-    List<MarketplaceOrder> findDetailedByVendorUserId(@Param("userId") Long userId);
+    List<MarketplaceOrder> findAllDetailed();
 
     @Query("""
-            select o from MarketplaceOrder o
+            select distinct o from MarketplaceOrder o
             join fetch o.client c
             join fetch o.vendor v
             join fetch v.user
             join fetch o.service s
             left join fetch o.pricingOption
+            left join fetch o.attachments
+            left join fetch o.selectedMaterialOptions
             where o.id = :orderId and v.user.id = :userId
             """)
     Optional<MarketplaceOrder> findDetailedByIdAndVendorUserId(@Param("orderId") Long orderId, @Param("userId") Long userId);

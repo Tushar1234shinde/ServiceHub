@@ -29,7 +29,7 @@ public class VendorInsightsService {
             throw new BadRequestException("Only vendors can access analytics");
         }
 
-        List<MarketplaceOrder> orders = orderRepository.findByVendorUserId(currentUser.getId());
+        List<MarketplaceOrder> orders = orderRepository.findDetailedByVendorUserId(currentUser.getId());
         long totalServices = serviceListingRepository.findByVendorUserId(currentUser.getId()).size();
         long totalOrders = orders.size();
         long activeOrders = orders.stream()

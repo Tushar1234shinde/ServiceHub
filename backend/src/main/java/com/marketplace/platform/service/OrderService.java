@@ -76,9 +76,9 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrders(User currentUser) {
         List<MarketplaceOrder> orders = switch (currentUser.getRole()) {
-            case CLIENT -> orderRepository.findByClientId(currentUser.getId());
-            case VENDOR -> orderRepository.findByVendorUserId(currentUser.getId());
-            case ADMIN -> orderRepository.findAll();
+            case CLIENT -> orderRepository.findDetailedByClientId(currentUser.getId());
+            case VENDOR -> orderRepository.findDetailedByVendorUserId(currentUser.getId());
+            case ADMIN -> orderRepository.findAllDetailed();
         };
         return orders.stream().map(this::toResponse).toList();
     }
