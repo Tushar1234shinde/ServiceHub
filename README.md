@@ -2,6 +2,8 @@
 
 ServiceHub is a full-stack home services marketplace built with Spring Boot and React. It helps clients discover trusted vendors for painting, plastering, window making, POP work, renovation, cleaning, and maintenance services.
 
+Live link : https://service-hub-self-eta.vercel.app
+
 The app includes:
 - A public landing page for logged-out users
 - Role-based authentication for `CLIENT`, `VENDOR`, and `ADMIN`
