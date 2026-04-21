@@ -5,15 +5,18 @@ const AuthContext = createContext(null);
 const STORAGE_KEY = "marketplace-auth";
 
 function readSession() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (!stored) {
-    return null;
-  }
-
   try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return null;
+    }
     return JSON.parse(stored);
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore
+    }
     return null;
   }
 }
@@ -22,10 +25,14 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(readSession);
 
   useEffect(() => {
-    if (session) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
+    try {
+      if (session) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // Ignore
     }
   }, [session]);
 

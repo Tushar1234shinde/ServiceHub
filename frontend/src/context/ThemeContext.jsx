@@ -4,7 +4,11 @@ const ThemeContext = createContext(null);
 const STORAGE_KEY = "marketplace-theme";
 
 function readTheme() {
-  return localStorage.getItem(STORAGE_KEY) || "light";
+  try {
+    return localStorage.getItem(STORAGE_KEY) || "light";
+  } catch (e) {
+    return "light";
+  }
 }
 
 export function ThemeProvider({ children }) {
@@ -12,7 +16,11 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (e) {
+      // Ignore security errors
+    }
   }, [theme]);
 
   const value = useMemo(() => ({
